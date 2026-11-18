@@ -1,0 +1,6 @@
+/terraform-provider-entrepot
+/dist/
+*.test
+.terraform/
+*.tfstate*
+.terraform.lock.hcl
