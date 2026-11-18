@@ -1,0 +1,50 @@
+---
+page_title: "Entrepot Provider"
+description: |-
+  Manage Entrepot repositories, storage, access control, scanning, cleanup and routing as code.
+---
+
+# Entrepot Provider
+
+The Entrepot provider configures an [Entrepot](https://github.com/geoffo-dev/package-repository)
+package repository manager through its management API. It covers:
+
+* blob stores;
+* hosted, proxy and group repositories for raw, PyPI, npm, Docker, Apt, Yum and Helm;
+* roles and role bindings;
+* GitLab CI trust policies;
+* service accounts and tokens;
+* vulnerability scanners and waivers;
+* cleanup policies and routing rules;
+* repository signing keys.
+
+It works with **Terraform** (≥ 1.5) and **OpenTofu** (≥ 1.8).
+
+## Authentication
+
+Create a service account with the `admin` role and give the provider one of its tokens:
+
+```shell
+curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST https://entrepot.example.com/api/v1/service-accounts -d '{"name":"terraform"}'
+curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST https://entrepot.example.com/api/v1/role-bindings \
+  -d '{"role":"admin","subjectType":"user","subject":"sa:terraform","repositoryPattern":"*"}'
+curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST https://entrepot.example.com/api/v1/service-accounts/terraform/tokens -d '{"name":"ci"}'
+```
+
+## Example Usage
+
+{{ tffile "examples/provider/provider.tf" }}
+
+## Write-only secrets
+
+These values are never returned by the API:
+
+* proxy passwords;
+* S3 secret keys;
+* scanner secrets;
+* signing private keys.
+
+The provider keeps the value from your configuration, so changes made to these values outside
+Terraform are not detected.
+
+{{ .SchemaMarkdown | trimspace }}

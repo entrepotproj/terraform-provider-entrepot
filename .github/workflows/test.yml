@@ -1,0 +1,87 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go mod download
+      - run: go build -v ./...
+      - run: go vet ./...
+      - name: gofmt
+        run: test -z "$(gofmt -l .)"
+      - name: Generated client is up to date
+        run: |
+          (cd internal/client && go generate ./...)
+          git diff --exit-code -- internal/client
+      - name: Docs are up to date
+        run: |
+          go generate ./...
+          git diff --exit-code -- docs
+      - name: Unit tests
+        run: go test ./...
+
+  acceptance:
+    name: Acceptance (${{ matrix.cli }} ${{ matrix.version }})
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { cli: terraform, version: "1.5.*" }
+          - { cli: terraform, version: "1.9.*" }
+          - { cli: tofu, version: "1.8.*" }
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: hashicorp/setup-terraform@v3
+        if: matrix.cli == 'terraform'
+        with:
+          terraform_version: ${{ matrix.version }}
+          terraform_wrapper: false
+      - uses: opentofu/setup-opentofu@v1
+        if: matrix.cli == 'tofu'
+        with:
+          tofu_version: ${{ matrix.version }}
+          tofu_wrapper: false
+      - name: Extract the Entrepot server binary from its image
+        env:
+          ENTREPOT_IMAGE: ghcr.io/geoffo-dev/entrepot:${{ vars.ENTREPOT_VERSION || 'latest' }}
+        run: |
+          docker create --name entrepot "$ENTREPOT_IMAGE"
+          docker cp entrepot:/usr/local/bin/entrepot ./entrepot-server
+          docker rm entrepot
+      - name: Acceptance tests
+        env:
+          TF_ACC: "1"
+          ENTREPOT_BINARY: ${{ github.workspace }}/entrepot-server
+          ENTREPOT_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+          TF_ACC_TERRAFORM_PATH: ${{ matrix.cli == 'tofu' && '/usr/local/bin/tofu' || '' }}
+          TF_ACC_PROVIDER_HOST: ${{ matrix.cli == 'tofu' && 'registry.opentofu.org' || 'registry.terraform.io' }}
+          TF_ACC_PROVIDER_NAMESPACE: geoffo-dev
+        run: |
+          if [ "${{ matrix.cli }}" = "terraform" ]; then export TF_ACC_TERRAFORM_PATH="$(which terraform)"; else export TF_ACC_TERRAFORM_PATH="$(which tofu)"; fi
+          go test -v -count=1 -timeout 15m ./internal/provider/

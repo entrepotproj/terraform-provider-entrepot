@@ -47,6 +47,17 @@ type Server struct {
 
 var current *Server
 
+// GitLabInstance is the name of the trusted GitLab instance configured on
+// harness-started servers (for GitLab trust policy tests). Servers given
+// with ENTREPOT_URL must configure an instance with this name under
+// auth.gitlab, or set ENTREPOT_TEST_GITLAB to the name they use.
+var GitLabInstance = func() string {
+	if v := os.Getenv("ENTREPOT_TEST_GITLAB"); v != "" {
+		return v
+	}
+	return "gitlab"
+}()
+
 // Main starts the server (if needed) around the test run. Use it from
 // TestMain: func TestMain(m *testing.M) { acctest.Main(m) }.
 func Main(m *testing.M) {
@@ -132,12 +143,17 @@ func start() (*Server, error) {
 	token := "tfacc-bootstrap-" + RandName("t")
 	cfg := fmt.Sprintf(`server: {addr: "127.0.0.1:%d", baseURL: %q}
 database: {url: %q}
-auth: {sessionSecret: "tfacc-session-secret-0123456789abcdef", bootstrapToken: %q}
+auth:
+  sessionSecret: "tfacc-session-secret-0123456789abcdef"
+  bootstrapToken: %q
+  # A trusted GitLab instance so GitLab trust policies can be managed
+  # (OIDC discovery is lazy, so the issuer is never contacted).
+  gitlab: [{name: %q, issuerURL: "https://gitlab.example.com", audience: %q}]
 storage: {allowedRoots: [%q], tempDir: %q}
 scan: {workers: 0}
 cleanup: {interval: 0s}
 log: {format: text, level: warn}
-`, port, base, dbURL.String(), token, dataDir, dir)
+`, port, base, dbURL.String(), token, GitLabInstance, base, dataDir, dir)
 	cfgPath := filepath.Join(dir, "config.yaml")
 	if err := os.WriteFile(cfgPath, []byte(cfg), 0o600); err != nil {
 		return nil, err
