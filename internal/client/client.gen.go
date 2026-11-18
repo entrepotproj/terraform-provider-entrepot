@@ -42,6 +42,27 @@ func (e Action) Valid() bool {
 	}
 }
 
+// Defines values for ActivityEventKind.
+const (
+	ActivityEventKindDelete   ActivityEventKind = "delete"
+	ActivityEventKindDownload ActivityEventKind = "download"
+	ActivityEventKindUpload   ActivityEventKind = "upload"
+)
+
+// Valid indicates whether the value is a known member of the ActivityEventKind enum.
+func (e ActivityEventKind) Valid() bool {
+	switch e {
+	case ActivityEventKindDelete:
+		return true
+	case ActivityEventKindDownload:
+		return true
+	case ActivityEventKindUpload:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ApiTokenInputScopes.
 const (
 	ApiTokenInputScopesAdmin  ApiTokenInputScopes = "admin"
@@ -435,6 +456,171 @@ func (e SubjectType) Valid() bool {
 	}
 }
 
+// Defines values for UsageOverviewScope.
+const (
+	All      UsageOverviewScope = "all"
+	Readable UsageOverviewScope = "readable"
+)
+
+// Valid indicates whether the value is a known member of the UsageOverviewScope enum.
+func (e UsageOverviewScope) Valid() bool {
+	switch e {
+	case All:
+		return true
+	case Readable:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ExportFormat.
+const (
+	ExportFormatCsv  ExportFormat = "csv"
+	ExportFormatJson ExportFormat = "json"
+)
+
+// Valid indicates whether the value is a known member of the ExportFormat enum.
+func (e ExportFormat) Valid() bool {
+	switch e {
+	case ExportFormatCsv:
+		return true
+	case ExportFormatJson:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UsageRange.
+const (
+	UsageRangeN1h  UsageRange = "1h"
+	UsageRangeN24h UsageRange = "24h"
+	UsageRangeN30d UsageRange = "30d"
+	UsageRangeN7d  UsageRange = "7d"
+)
+
+// Valid indicates whether the value is a known member of the UsageRange enum.
+func (e UsageRange) Valid() bool {
+	switch e {
+	case UsageRangeN1h:
+		return true
+	case UsageRangeN24h:
+		return true
+	case UsageRangeN30d:
+		return true
+	case UsageRangeN7d:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListActivityParamsKind.
+const (
+	ListActivityParamsKindDelete   ListActivityParamsKind = "delete"
+	ListActivityParamsKindDownload ListActivityParamsKind = "download"
+	ListActivityParamsKindUpload   ListActivityParamsKind = "upload"
+)
+
+// Valid indicates whether the value is a known member of the ListActivityParamsKind enum.
+func (e ListActivityParamsKind) Valid() bool {
+	switch e {
+	case ListActivityParamsKindDelete:
+		return true
+	case ListActivityParamsKindDownload:
+		return true
+	case ListActivityParamsKindUpload:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListActivityParamsFormat.
+const (
+	ListActivityParamsFormatCsv  ListActivityParamsFormat = "csv"
+	ListActivityParamsFormatJson ListActivityParamsFormat = "json"
+)
+
+// Valid indicates whether the value is a known member of the ListActivityParamsFormat enum.
+func (e ListActivityParamsFormat) Valid() bool {
+	switch e {
+	case ListActivityParamsFormatCsv:
+		return true
+	case ListActivityParamsFormatJson:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ListAuditEventsParamsFormat.
+const (
+	ListAuditEventsParamsFormatCsv  ListAuditEventsParamsFormat = "csv"
+	ListAuditEventsParamsFormatJson ListAuditEventsParamsFormat = "json"
+)
+
+// Valid indicates whether the value is a known member of the ListAuditEventsParamsFormat enum.
+func (e ListAuditEventsParamsFormat) Valid() bool {
+	switch e {
+	case ListAuditEventsParamsFormatCsv:
+		return true
+	case ListAuditEventsParamsFormatJson:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetMetricsOverviewParamsRange.
+const (
+	GetMetricsOverviewParamsRangeN1h  GetMetricsOverviewParamsRange = "1h"
+	GetMetricsOverviewParamsRangeN24h GetMetricsOverviewParamsRange = "24h"
+	GetMetricsOverviewParamsRangeN30d GetMetricsOverviewParamsRange = "30d"
+	GetMetricsOverviewParamsRangeN7d  GetMetricsOverviewParamsRange = "7d"
+)
+
+// Valid indicates whether the value is a known member of the GetMetricsOverviewParamsRange enum.
+func (e GetMetricsOverviewParamsRange) Valid() bool {
+	switch e {
+	case GetMetricsOverviewParamsRangeN1h:
+		return true
+	case GetMetricsOverviewParamsRangeN24h:
+		return true
+	case GetMetricsOverviewParamsRangeN30d:
+		return true
+	case GetMetricsOverviewParamsRangeN7d:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetRepositoryMetricsParamsRange.
+const (
+	GetRepositoryMetricsParamsRangeN1h  GetRepositoryMetricsParamsRange = "1h"
+	GetRepositoryMetricsParamsRangeN24h GetRepositoryMetricsParamsRange = "24h"
+	GetRepositoryMetricsParamsRangeN30d GetRepositoryMetricsParamsRange = "30d"
+	GetRepositoryMetricsParamsRangeN7d  GetRepositoryMetricsParamsRange = "7d"
+)
+
+// Valid indicates whether the value is a known member of the GetRepositoryMetricsParamsRange enum.
+func (e GetRepositoryMetricsParamsRange) Valid() bool {
+	switch e {
+	case GetRepositoryMetricsParamsRangeN1h:
+		return true
+	case GetRepositoryMetricsParamsRangeN24h:
+		return true
+	case GetRepositoryMetricsParamsRangeN30d:
+		return true
+	case GetRepositoryMetricsParamsRangeN7d:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for ListScanJobsParamsStatus.
 const (
 	ListScanJobsParamsStatusDone    ListScanJobsParamsStatus = "done"
@@ -461,6 +647,28 @@ func (e ListScanJobsParamsStatus) Valid() bool {
 
 // Action defines model for Action.
 type Action string
+
+// ActivityEvent defines model for ActivityEvent.
+type ActivityEvent struct {
+	Actor     string    `json:"actor"`
+	ActorKind string    `json:"actorKind"`
+	At        time.Time `json:"at"`
+	Bytes     int64     `json:"bytes"`
+
+	// Component name@version
+	Component   *string           `json:"component,omitempty"`
+	ComponentId *string           `json:"componentId,omitempty"`
+	Format      string            `json:"format"`
+	Id          int64             `json:"id"`
+	Kind        ActivityEventKind `json:"kind"`
+	Path        string            `json:"path"`
+	RemoteIp    string            `json:"remoteIp"`
+	Repository  string            `json:"repository"`
+	UserAgent   string            `json:"userAgent"`
+}
+
+// ActivityEventKind defines model for ActivityEvent.Kind.
+type ActivityEventKind string
 
 // ApiToken defines model for ApiToken.
 type ApiToken struct {
@@ -578,6 +786,15 @@ type BlobStoreInput struct {
 	Name string               `json:"name"`
 	S3   *S3BlobStoreConfig   `json:"s3,omitempty"`
 	Type BlobStoreType        `json:"type"`
+}
+
+// BlobStoreSummary defines model for BlobStoreSummary.
+type BlobStoreSummary struct {
+	BlobCount    int64  `json:"blobCount"`
+	Name         string `json:"name"`
+	Repositories int64  `json:"repositories"`
+	TotalBytes   int64  `json:"totalBytes"`
+	Type         string `json:"type"`
 }
 
 // BlobStoreType defines model for BlobStoreType.
@@ -724,6 +941,15 @@ type FormatInfo struct {
 	Name string `json:"name"`
 }
 
+// FormatInventory defines model for FormatInventory.
+type FormatInventory struct {
+	Assets       int64  `json:"assets"`
+	Components   int64  `json:"components"`
+	Format       string `json:"format"`
+	Repositories int64  `json:"repositories"`
+	TotalBytes   int64  `json:"totalBytes"`
+}
+
 // GitLabTrustPolicy defines model for GitLabTrustPolicy.
 type GitLabTrustPolicy struct {
 	Conditions  map[string]string `json:"conditions"`
@@ -863,6 +1089,25 @@ type RepositoryStats struct {
 	Assets     int64 `json:"assets"`
 	Components int64 `json:"components"`
 	TotalBytes int64 `json:"totalBytes"`
+}
+
+// RepositoryUsage defines model for RepositoryUsage.
+type RepositoryUsage struct {
+	Counts     UsageCounts `json:"counts"`
+	Format     string      `json:"format"`
+	Kind       string      `json:"kind"`
+	Repository string      `json:"repository"`
+}
+
+// RepositoryUsageReport defines model for RepositoryUsageReport.
+type RepositoryUsageReport struct {
+	BucketSeconds int          `json:"bucketSeconds"`
+	From          time.Time    `json:"from"`
+	Range         string       `json:"range"`
+	Repository    string       `json:"repository"`
+	RequestRate   float32      `json:"requestRate"`
+	Series        []UsagePoint `json:"series"`
+	Totals        UsageCounts  `json:"totals"`
 }
 
 // Role defines model for Role.
@@ -1159,6 +1404,63 @@ type TrivySettings struct {
 	TimeoutSeconds *int    `json:"timeoutSeconds,omitempty"`
 }
 
+// UsageCounts defines model for UsageCounts.
+type UsageCounts struct {
+	BytesIn  int64 `json:"bytesIn"`
+	BytesOut int64 `json:"bytesOut"`
+
+	// CacheHits Proxy requests served from cache
+	CacheHits int64 `json:"cacheHits"`
+
+	// CacheMisses Proxy requests fetched from the upstream
+	CacheMisses int64 `json:"cacheMisses"`
+	Downloads   int64 `json:"downloads"`
+
+	// Errors Server errors (5xx)
+	Errors   int64 `json:"errors"`
+	Requests int64 `json:"requests"`
+	Uploads  int64 `json:"uploads"`
+}
+
+// UsageOverview defines model for UsageOverview.
+type UsageOverview struct {
+	BucketSeconds int       `json:"bucketSeconds"`
+	From          time.Time `json:"from"`
+
+	// Inventory Repositories and content per format
+	Inventory []FormatInventory `json:"inventory"`
+	Range     string            `json:"range"`
+
+	// RequestRate Requests per second over the last 5 minutes
+	RequestRate float32 `json:"requestRate"`
+
+	// Scan Components by scan state (plus quarantined)
+	Scan map[string]int64 `json:"scan"`
+
+	// Scope readable: only repositories the caller can read
+	Scope  UsageOverviewScope `json:"scope"`
+	Series []UsagePoint       `json:"series"`
+
+	// Storage Blob store usage (administrators only)
+	Storage         *[]BlobStoreSummary `json:"storage,omitempty"`
+	TopRepositories []RepositoryUsage   `json:"topRepositories"`
+	Totals          UsageCounts         `json:"totals"`
+}
+
+// UsageOverviewScope readable: only repositories the caller can read
+type UsageOverviewScope string
+
+// UsagePoint defines model for UsagePoint.
+type UsagePoint struct {
+	BytesIn   int64     `json:"bytesIn"`
+	BytesOut  int64     `json:"bytesOut"`
+	Downloads int64     `json:"downloads"`
+	Errors    int64     `json:"errors"`
+	Requests  int64     `json:"requests"`
+	T         time.Time `json:"t"`
+	Uploads   int64     `json:"uploads"`
+}
+
 // User defines model for User.
 type User struct {
 	CreatedAt      time.Time  `json:"createdAt"`
@@ -1215,6 +1517,12 @@ type YumHostedSettings struct {
 	RepodataDepth *int `json:"repodataDepth,omitempty"`
 }
 
+// ExportFormat defines model for ExportFormat.
+type ExportFormat string
+
+// From defines model for From.
+type From = time.Time
+
 // ID defines model for ID.
 type ID = string
 
@@ -1227,16 +1535,83 @@ type Name = string
 // Offset defines model for Offset.
 type Offset = int
 
+// To defines model for To.
+type To = time.Time
+
+// UsageRange defines model for UsageRange.
+type UsageRange string
+
+// ListActivityParams defines parameters for ListActivity.
+type ListActivityParams struct {
+	Repository *string                 `form:"repository,omitempty" json:"repository,omitempty"`
+	Kind       *ListActivityParamsKind `form:"kind,omitempty" json:"kind,omitempty"`
+
+	// Actor Substring of the actor
+	Actor *string `form:"actor,omitempty" json:"actor,omitempty"`
+
+	// Path Substring of the asset path
+	Path *string `form:"path,omitempty" json:"path,omitempty"`
+
+	// From Only events at or after this time
+	From *From `form:"from,omitempty" json:"from,omitempty"`
+
+	// To Only events before this time
+	To *To `form:"to,omitempty" json:"to,omitempty"`
+
+	// Before Return events with a smaller id (paging)
+	Before *int64 `form:"before,omitempty" json:"before,omitempty"`
+	Limit  *Limit `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Format json (default) or csv
+	Format *ListActivityParamsFormat `form:"format,omitempty" json:"format,omitempty"`
+}
+
+// ListActivityParamsKind defines parameters for ListActivity.
+type ListActivityParamsKind string
+
+// ListActivityParamsFormat defines parameters for ListActivity.
+type ListActivityParamsFormat string
+
 // ListAuditEventsParams defines parameters for ListAuditEvents.
 type ListAuditEventsParams struct {
 	Before *int64 `form:"before,omitempty" json:"before,omitempty"`
 	Limit  *Limit `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Actor Substring of the actor
+	Actor *string `form:"actor,omitempty" json:"actor,omitempty"`
+
+	// Action Action prefix
+	Action *string `form:"action,omitempty" json:"action,omitempty"`
+
+	// Target Substring of the target
+	Target *string `form:"target,omitempty" json:"target,omitempty"`
+
+	// From Only events at or after this time
+	From *From `form:"from,omitempty" json:"from,omitempty"`
+
+	// To Only events before this time
+	To *To `form:"to,omitempty" json:"to,omitempty"`
+
+	// Format json (default) or csv
+	Format *ListAuditEventsParamsFormat `form:"format,omitempty" json:"format,omitempty"`
 }
+
+// ListAuditEventsParamsFormat defines parameters for ListAuditEvents.
+type ListAuditEventsParamsFormat string
 
 // PreviewCleanupPolicyParams defines parameters for PreviewCleanupPolicy.
 type PreviewCleanupPolicyParams struct {
 	Repository string `form:"repository" json:"repository"`
 }
+
+// GetMetricsOverviewParams defines parameters for GetMetricsOverview.
+type GetMetricsOverviewParams struct {
+	// Range Time window (default 24h)
+	Range *GetMetricsOverviewParamsRange `form:"range,omitempty" json:"range,omitempty"`
+}
+
+// GetMetricsOverviewParamsRange defines parameters for GetMetricsOverview.
+type GetMetricsOverviewParamsRange string
 
 // ListRepositoriesParams defines parameters for ListRepositories.
 type ListRepositoriesParams struct {
@@ -1272,6 +1647,15 @@ type ListRepositoryComponentsParams struct {
 	Limit  *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
 	Offset *Offset `form:"offset,omitempty" json:"offset,omitempty"`
 }
+
+// GetRepositoryMetricsParams defines parameters for GetRepositoryMetrics.
+type GetRepositoryMetricsParams struct {
+	// Range Time window (default 24h)
+	Range *GetRepositoryMetricsParamsRange `form:"range,omitempty" json:"range,omitempty"`
+}
+
+// GetRepositoryMetricsParamsRange defines parameters for GetRepositoryMetrics.
+type GetRepositoryMetricsParamsRange string
 
 // UploadComponentMultipartBody defines parameters for UploadComponent.
 type UploadComponentMultipartBody struct {
@@ -1474,6 +1858,14 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 
+	// ListActivity Activity log of downloads, uploads and deletes
+	//
+	// Administrators see all repositories; repository administrators can query
+	// their repositories with `repository=`. Use `format=csv` to export.
+	//
+	// Corresponds with GET /activity (the `ListActivity` operationId).
+	ListActivity(ctx context.Context, params *ListActivityParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// DeleteAsset performs a DELETE /assets/{id} (the `DeleteAsset` operationId) request.
 	DeleteAsset(ctx context.Context, id ID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -1484,6 +1876,8 @@ type ClientInterface interface {
 	DownloadAsset(ctx context.Context, id ID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListAuditEvents Audit log, newest first (admin)
+	//
+	// Configuration changes, logins and other administrative events. Use `format=csv` to export.
 	//
 	// Corresponds with GET /audit-events (the `ListAuditEvents` operationId).
 	ListAuditEvents(ctx context.Context, params *ListAuditEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -1617,6 +2011,15 @@ type ClientInterface interface {
 	// Corresponds with GET /me (the `GetMe` operationId).
 	GetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// GetMetricsOverview Usage dashboard data
+	//
+	// Requests, downloads, uploads, traffic and cache efficiency over time, plus
+	// content inventory and scan status. Scoped to the repositories the caller
+	// can read (administrators see everything, plus storage per blob store).
+	//
+	// Corresponds with GET /metrics/overview (the `GetMetricsOverview` operationId).
+	GetMetricsOverview(ctx context.Context, params *GetMetricsOverviewParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ListRepositories performs a GET /repositories (the `ListRepositories` operationId) request.
 	//
 	// Lists repositories the caller can read.
@@ -1663,6 +2066,11 @@ type ClientInterface interface {
 
 	// ListRepositoryComponents performs a GET /repositories/{name}/components (the `ListRepositoryComponents` operationId) request.
 	ListRepositoryComponents(ctx context.Context, name Name, params *ListRepositoryComponentsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetRepositoryMetrics Usage of one repository
+	//
+	// Corresponds with GET /repositories/{name}/metrics (the `GetRepositoryMetrics` operationId).
+	GetRepositoryMetrics(ctx context.Context, name Name, params *GetRepositoryMetricsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// GetSigningKey Public signing key of an Apt/Yum repository (created on first use)
 	//
@@ -1932,6 +2340,24 @@ type ClientInterface interface {
 	UpdateWaiver(ctx context.Context, id ID, body UpdateWaiverJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 }
 
+// ListActivity Activity log of downloads, uploads and deletes
+//
+// Administrators see all repositories; repository administrators can query
+// their repositories with `repository=`. Use `format=csv` to export.
+//
+// Corresponds with GET /activity (the `ListActivity` operationId).
+func (c *Client) ListActivity(ctx context.Context, params *ListActivityParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListActivityRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // DeleteAsset performs a DELETE /assets/{id} (the `DeleteAsset` operationId) request.
 func (c *Client) DeleteAsset(ctx context.Context, id ID, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewDeleteAssetRequest(c.Server, id)
@@ -1972,6 +2398,8 @@ func (c *Client) DownloadAsset(ctx context.Context, id ID, reqEditors ...Request
 }
 
 // ListAuditEvents Audit log, newest first (admin)
+//
+// Configuration changes, logins and other administrative events. Use `format=csv` to export.
 //
 // Corresponds with GET /audit-events (the `ListAuditEvents` operationId).
 func (c *Client) ListAuditEvents(ctx context.Context, params *ListAuditEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2405,6 +2833,25 @@ func (c *Client) GetMe(ctx context.Context, reqEditors ...RequestEditorFn) (*htt
 	return c.Client.Do(req)
 }
 
+// GetMetricsOverview Usage dashboard data
+//
+// Requests, downloads, uploads, traffic and cache efficiency over time, plus
+// content inventory and scan status. Scoped to the repositories the caller
+// can read (administrators see everything, plus storage per blob store).
+//
+// Corresponds with GET /metrics/overview (the `GetMetricsOverview` operationId).
+func (c *Client) GetMetricsOverview(ctx context.Context, params *GetMetricsOverviewParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetMetricsOverviewRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // ListRepositories performs a GET /repositories (the `ListRepositories` operationId) request.
 //
 // Lists repositories the caller can read.
@@ -2552,6 +2999,21 @@ func (c *Client) RunRepositoryCleanup(ctx context.Context, name Name, params *Ru
 // ListRepositoryComponents performs a GET /repositories/{name}/components (the `ListRepositoryComponents` operationId) request.
 func (c *Client) ListRepositoryComponents(ctx context.Context, name Name, params *ListRepositoryComponentsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewListRepositoryComponentsRequest(c.Server, name, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetRepositoryMetrics Usage of one repository
+//
+// Corresponds with GET /repositories/{name}/metrics (the `GetRepositoryMetrics` operationId).
+func (c *Client) GetRepositoryMetrics(ctx context.Context, name Name, params *GetRepositoryMetricsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetRepositoryMetricsRequest(c.Server, name, params)
 	if err != nil {
 		return nil, err
 	}
@@ -3439,6 +3901,156 @@ func (c *Client) UpdateWaiver(ctx context.Context, id ID, body UpdateWaiverJSONR
 	return c.Client.Do(req)
 }
 
+// NewListActivityRequest constructs an http.Request for the ListActivity method
+func NewListActivityRequest(server string, params *ListActivityParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/activity")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Repository != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "repository", *params.Repository, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Kind != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "kind", *params.Kind, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Actor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "actor", *params.Actor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Path != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "path", *params.Path, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.From != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "from", *params.From, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "date-time"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.To != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "to", *params.To, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "date-time"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Before != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "before", *params.Before, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int64"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Format != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "format", *params.Format, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewDeleteAssetRequest constructs an http.Request for the DeleteAsset method
 func NewDeleteAssetRequest(server string, id ID) (*http.Request, error) {
 	var err error
@@ -3584,6 +4196,78 @@ func NewListAuditEventsRequest(server string, params *ListAuditEventsParams) (*h
 		if params.Limit != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Actor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "actor", *params.Actor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Action != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "action", *params.Action, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Target != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "target", *params.Target, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.From != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "from", *params.From, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "date-time"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.To != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "to", *params.To, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: "date-time"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Format != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "format", *params.Format, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -4413,6 +5097,60 @@ func NewGetMeRequest(server string) (*http.Request, error) {
 	return req, nil
 }
 
+// NewGetMetricsOverviewRequest constructs an http.Request for the GetMetricsOverview method
+func NewGetMetricsOverviewRequest(server string, params *GetMetricsOverviewParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/metrics/overview")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Range != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "range", *params.Range, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
 // NewListRepositoriesRequest constructs an http.Request for the ListRepositories method
 func NewListRepositoriesRequest(server string, params *ListRepositoriesParams) (*http.Request, error) {
 	var err error
@@ -4903,6 +5641,67 @@ func NewListRepositoryComponentsRequest(server string, name Name, params *ListRe
 		if params.Offset != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "offset", *params.Offset, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetRepositoryMetricsRequest constructs an http.Request for the GetRepositoryMetrics method
+func NewGetRepositoryMetricsRequest(server string, name Name, params *GetRepositoryMetricsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "name", name, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/repositories/%s/metrics", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Range != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "range", *params.Range, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -6792,6 +7591,16 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 
+	// ListActivityWithResponse Activity log of downloads, uploads and deletes
+	//
+	// Administrators see all repositories; repository administrators can query
+	// their repositories with `repository=`. Use `format=csv` to export.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /activity (the `ListActivity` operationId).
+	ListActivityWithResponse(ctx context.Context, params *ListActivityParams, reqEditors ...RequestEditorFn) (*ListActivityResponse, error)
+
 	// DeleteAssetWithResponse performs a DELETE /assets/{id} (the `DeleteAsset` operationId) request.
 	//
 	// Returns a wrapper object for the known response body format(s).
@@ -6808,6 +7617,8 @@ type ClientWithResponsesInterface interface {
 	DownloadAssetWithResponse(ctx context.Context, id ID, reqEditors ...RequestEditorFn) (*DownloadAssetResponse, error)
 
 	// ListAuditEventsWithResponse Audit log, newest first (admin)
+	//
+	// Configuration changes, logins and other administrative events. Use `format=csv` to export.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -6985,6 +7796,17 @@ type ClientWithResponsesInterface interface {
 	// Corresponds with GET /me (the `GetMe` operationId).
 	GetMeWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*GetMeResponse, error)
 
+	// GetMetricsOverviewWithResponse Usage dashboard data
+	//
+	// Requests, downloads, uploads, traffic and cache efficiency over time, plus
+	// content inventory and scan status. Scoped to the repositories the caller
+	// can read (administrators see everything, plus storage per blob store).
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /metrics/overview (the `GetMetricsOverview` operationId).
+	GetMetricsOverviewWithResponse(ctx context.Context, params *GetMetricsOverviewParams, reqEditors ...RequestEditorFn) (*GetMetricsOverviewResponse, error)
+
 	// ListRepositoriesWithResponse performs a GET /repositories (the `ListRepositories` operationId) request.
 	//
 	// Lists repositories the caller can read.
@@ -7049,6 +7871,13 @@ type ClientWithResponsesInterface interface {
 	//
 	// Returns a wrapper object for the known response body format(s).
 	ListRepositoryComponentsWithResponse(ctx context.Context, name Name, params *ListRepositoryComponentsParams, reqEditors ...RequestEditorFn) (*ListRepositoryComponentsResponse, error)
+
+	// GetRepositoryMetricsWithResponse Usage of one repository
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /repositories/{name}/metrics (the `GetRepositoryMetrics` operationId).
+	GetRepositoryMetricsWithResponse(ctx context.Context, name Name, params *GetRepositoryMetricsParams, reqEditors ...RequestEditorFn) (*GetRepositoryMetricsResponse, error)
 
 	// GetSigningKeyWithResponse Public signing key of an Apt/Yum repository (created on first use)
 	//
@@ -7402,6 +8231,54 @@ type ClientWithResponsesInterface interface {
 	// UpdateWaiverWithResponse performs a PUT /waivers/{id} (the `UpdateWaiver` operationId) request.
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	UpdateWaiverWithResponse(ctx context.Context, id ID, body UpdateWaiverJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateWaiverResponse, error)
+}
+
+type ListActivityResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *[]ActivityEvent
+	// JSONDefault the response for an HTTP default `application/json` response
+	JSONDefault *Error
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ListActivityResponse) GetJSON200() *[]ActivityEvent {
+	return r.JSON200
+}
+
+// GetJSONDefault returns the response for an HTTP default `application/json` response
+func (r ListActivityResponse) GetJSONDefault() *Error {
+	return r.JSONDefault
+}
+
+// GetBody returns the raw response body bytes
+func (r ListActivityResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ListActivityResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListActivityResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListActivityResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type DeleteAssetResponse struct {
@@ -8607,6 +9484,54 @@ func (r GetMeResponse) ContentType() string {
 	return ""
 }
 
+type GetMetricsOverviewResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *UsageOverview
+	// JSONDefault the response for an HTTP default `application/json` response
+	JSONDefault *Error
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetMetricsOverviewResponse) GetJSON200() *UsageOverview {
+	return r.JSON200
+}
+
+// GetJSONDefault returns the response for an HTTP default `application/json` response
+func (r GetMetricsOverviewResponse) GetJSONDefault() *Error {
+	return r.JSONDefault
+}
+
+// GetBody returns the raw response body bytes
+func (r GetMetricsOverviewResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetMetricsOverviewResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetMetricsOverviewResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetMetricsOverviewResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
 type ListRepositoriesResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
@@ -9026,6 +9951,54 @@ func (r ListRepositoryComponentsResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r ListRepositoryComponentsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetRepositoryMetricsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *RepositoryUsageReport
+	// JSONDefault the response for an HTTP default `application/json` response
+	JSONDefault *Error
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetRepositoryMetricsResponse) GetJSON200() *RepositoryUsageReport {
+	return r.JSON200
+}
+
+// GetJSONDefault returns the response for an HTTP default `application/json` response
+func (r GetRepositoryMetricsResponse) GetJSONDefault() *Error {
+	return r.JSONDefault
+}
+
+// GetBody returns the raw response body bytes
+func (r GetRepositoryMetricsResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetRepositoryMetricsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetRepositoryMetricsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetRepositoryMetricsResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -11163,6 +12136,22 @@ func (r UpdateWaiverResponse) ContentType() string {
 	return ""
 }
 
+// ListActivityWithResponse Activity log of downloads, uploads and deletes
+//
+// Administrators see all repositories; repository administrators can query
+// their repositories with `repository=`. Use `format=csv` to export.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /activity (the `ListActivity` operationId).
+func (c *ClientWithResponses) ListActivityWithResponse(ctx context.Context, params *ListActivityParams, reqEditors ...RequestEditorFn) (*ListActivityResponse, error) {
+	rsp, err := c.ListActivity(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListActivityResponse(rsp)
+}
+
 // DeleteAssetWithResponse performs a DELETE /assets/{id} (the `DeleteAsset` operationId) request.
 //
 // Returns a wrapper object for the known response body format(s).
@@ -11197,6 +12186,8 @@ func (c *ClientWithResponses) DownloadAssetWithResponse(ctx context.Context, id 
 }
 
 // ListAuditEventsWithResponse Audit log, newest first (admin)
+//
+// Configuration changes, logins and other administrative events. Use `format=csv` to export.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -11554,6 +12545,23 @@ func (c *ClientWithResponses) GetMeWithResponse(ctx context.Context, reqEditors 
 	return ParseGetMeResponse(rsp)
 }
 
+// GetMetricsOverviewWithResponse Usage dashboard data
+//
+// Requests, downloads, uploads, traffic and cache efficiency over time, plus
+// content inventory and scan status. Scoped to the repositories the caller
+// can read (administrators see everything, plus storage per blob store).
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /metrics/overview (the `GetMetricsOverview` operationId).
+func (c *ClientWithResponses) GetMetricsOverviewWithResponse(ctx context.Context, params *GetMetricsOverviewParams, reqEditors ...RequestEditorFn) (*GetMetricsOverviewResponse, error) {
+	rsp, err := c.GetMetricsOverview(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetMetricsOverviewResponse(rsp)
+}
+
 // ListRepositoriesWithResponse performs a GET /repositories (the `ListRepositories` operationId) request.
 //
 // Lists repositories the caller can read.
@@ -11683,6 +12691,19 @@ func (c *ClientWithResponses) ListRepositoryComponentsWithResponse(ctx context.C
 		return nil, err
 	}
 	return ParseListRepositoryComponentsResponse(rsp)
+}
+
+// GetRepositoryMetricsWithResponse Usage of one repository
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /repositories/{name}/metrics (the `GetRepositoryMetrics` operationId).
+func (c *ClientWithResponses) GetRepositoryMetricsWithResponse(ctx context.Context, name Name, params *GetRepositoryMetricsParams, reqEditors ...RequestEditorFn) (*GetRepositoryMetricsResponse, error) {
+	rsp, err := c.GetRepositoryMetrics(ctx, name, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetRepositoryMetricsResponse(rsp)
 }
 
 // GetSigningKeyWithResponse Public signing key of an Apt/Yum repository (created on first use)
@@ -12404,6 +13425,42 @@ func (c *ClientWithResponses) UpdateWaiverWithResponse(ctx context.Context, id I
 	return ParseUpdateWaiverResponse(rsp)
 }
 
+// ParseListActivityResponse parses an HTTP response from a ListActivityWithResponse call
+func ParseListActivityResponse(rsp *http.Response) (*ListActivityResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListActivityResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest []ActivityEvent
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	case rsp.StatusCode == 200:
+		// Content-type (text/csv) unsupported
+
+	}
+
+	return response, nil
+}
+
 // ParseDeleteAssetResponse parses an HTTP response from a DeleteAssetWithResponse call
 func ParseDeleteAssetResponse(rsp *http.Response) (*DeleteAssetResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -12519,6 +13576,9 @@ func ParseListAuditEventsResponse(rsp *http.Response) (*ListAuditEventsResponse,
 			return nil, err
 		}
 		response.JSONDefault = &dest
+
+	case rsp.StatusCode == 200:
+		// Content-type (text/csv) unsupported
 
 	}
 
@@ -13230,6 +14290,39 @@ func ParseGetMeResponse(rsp *http.Response) (*GetMeResponse, error) {
 	return response, nil
 }
 
+// ParseGetMetricsOverviewResponse parses an HTTP response from a GetMetricsOverviewWithResponse call
+func ParseGetMetricsOverviewResponse(rsp *http.Response) (*GetMetricsOverviewResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetMetricsOverviewResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest UsageOverview
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
 // ParseListRepositoriesResponse parses an HTTP response from a ListRepositoriesWithResponse call
 func ParseListRepositoriesResponse(rsp *http.Response) (*ListRepositoriesResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
@@ -13506,6 +14599,39 @@ func ParseListRepositoryComponentsResponse(rsp *http.Response) (*ListRepositoryC
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest []Component
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetRepositoryMetricsResponse parses an HTTP response from a GetRepositoryMetricsWithResponse call
+func ParseGetRepositoryMetricsResponse(rsp *http.Response) (*GetRepositoryMetricsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetRepositoryMetricsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest RepositoryUsageReport
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

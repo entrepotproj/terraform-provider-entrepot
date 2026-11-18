@@ -27,6 +27,7 @@ tags:
   - name: scanning
   - name: cleanup
   - name: routing
+  - name: metrics
 paths:
   /system/info:
     get:
@@ -72,9 +73,16 @@ paths:
       tags: [system]
       operationId: listAuditEvents
       summary: Audit log, newest first (admin)
+      description: Configuration changes, logins and other administrative events. Use `format=csv` to export.
       parameters:
         - { name: before, in: query, schema: { type: integer, format: int64 } }
         - { $ref: "#/components/parameters/Limit" }
+        - { name: actor, in: query, description: Substring of the actor, schema: { type: string } }
+        - { name: action, in: query, description: Action prefix, e.g. repository. or token.create, schema: { type: string } }
+        - { name: target, in: query, description: Substring of the target, schema: { type: string } }
+        - { $ref: "#/components/parameters/From" }
+        - { $ref: "#/components/parameters/To" }
+        - { $ref: "#/components/parameters/ExportFormat" }
       responses:
         "200":
           description: OK
@@ -83,6 +91,8 @@ paths:
               schema:
                 type: array
                 items: { $ref: "#/components/schemas/AuditEvent" }
+            text/csv:
+              schema: { type: string }
         default: { $ref: "#/components/responses/Error" }
 
   /blob-stores:
@@ -1151,6 +1161,75 @@ paths:
               schema: { $ref: "#/components/schemas/RoutingTestResult" }
         default: { $ref: "#/components/responses/Error" }
 
+  /metrics/overview:
+    get:
+      tags: [metrics]
+      operationId: getMetricsOverview
+      summary: Usage dashboard data
+      description: |
+        Requests, downloads, uploads, traffic and cache efficiency over time, plus
+        content inventory and scan status. Scoped to the repositories the caller
+        can read (administrators see everything, plus storage per blob store).
+      security:
+        - bearerAuth: []
+        - basicAuth: []
+        - sessionCookie: []
+        - {}
+      parameters:
+        - { $ref: "#/components/parameters/UsageRange" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UsageOverview" }
+        default: { $ref: "#/components/responses/Error" }
+  /repositories/{name}/metrics:
+    parameters:
+      - { $ref: "#/components/parameters/Name" }
+    get:
+      tags: [metrics]
+      operationId: getRepositoryMetrics
+      summary: Usage of one repository
+      parameters:
+        - { $ref: "#/components/parameters/UsageRange" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepositoryUsageReport" }
+        default: { $ref: "#/components/responses/Error" }
+  /activity:
+    get:
+      tags: [metrics]
+      operationId: listActivity
+      summary: Activity log of downloads, uploads and deletes
+      description: |
+        Administrators see all repositories; repository administrators can query
+        their repositories with `repository=`. Use `format=csv` to export.
+      parameters:
+        - { name: repository, in: query, schema: { type: string } }
+        - { name: kind, in: query, schema: { type: string, enum: [download, upload, delete] } }
+        - { name: actor, in: query, description: Substring of the actor, schema: { type: string } }
+        - { name: path, in: query, description: Substring of the asset path, schema: { type: string } }
+        - { $ref: "#/components/parameters/From" }
+        - { $ref: "#/components/parameters/To" }
+        - { name: before, in: query, description: Return events with a smaller id (paging), schema: { type: integer, format: int64 } }
+        - { $ref: "#/components/parameters/Limit" }
+        - { $ref: "#/components/parameters/ExportFormat" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ActivityEvent" }
+            text/csv:
+              schema: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1180,6 +1259,26 @@ components:
       name: limit
       in: query
       schema: { type: integer, minimum: 1, maximum: 1000 }
+    UsageRange:
+      name: range
+      in: query
+      description: Time window (default 24h)
+      schema: { type: string, enum: [1h, 24h, 7d, 30d] }
+    From:
+      name: from
+      in: query
+      description: Only events at or after this time
+      schema: { type: string, format: date-time }
+    To:
+      name: to
+      in: query
+      description: Only events before this time
+      schema: { type: string, format: date-time }
+    ExportFormat:
+      name: format
+      in: query
+      description: json (default) or csv
+      schema: { type: string, enum: [json, csv] }
     Offset:
       name: offset
       in: query
@@ -1877,3 +1976,111 @@ components:
       properties:
         allowed: { type: boolean }
         matched: { type: string, description: The matcher that decided }
+
+    UsageCounts:
+      type: object
+      required: [requests, errors, downloads, uploads, bytesOut, bytesIn, cacheHits, cacheMisses]
+      properties:
+        requests: { type: integer, format: int64 }
+        errors: { type: integer, format: int64, description: Server errors (5xx) }
+        downloads: { type: integer, format: int64 }
+        uploads: { type: integer, format: int64 }
+        bytesOut: { type: integer, format: int64 }
+        bytesIn: { type: integer, format: int64 }
+        cacheHits: { type: integer, format: int64, description: Proxy requests served from cache }
+        cacheMisses: { type: integer, format: int64, description: Proxy requests fetched from the upstream }
+    UsagePoint:
+      type: object
+      required: [t, requests, errors, downloads, uploads, bytesOut, bytesIn]
+      properties:
+        t: { type: string, format: date-time }
+        requests: { type: integer, format: int64 }
+        errors: { type: integer, format: int64 }
+        downloads: { type: integer, format: int64 }
+        uploads: { type: integer, format: int64 }
+        bytesOut: { type: integer, format: int64 }
+        bytesIn: { type: integer, format: int64 }
+    RepositoryUsage:
+      type: object
+      required: [repository, format, kind, counts]
+      properties:
+        repository: { type: string }
+        format: { type: string }
+        kind: { type: string }
+        counts: { $ref: "#/components/schemas/UsageCounts" }
+    FormatInventory:
+      type: object
+      required: [format, repositories, components, assets, totalBytes]
+      properties:
+        format: { type: string }
+        repositories: { type: integer, format: int64 }
+        components: { type: integer, format: int64 }
+        assets: { type: integer, format: int64 }
+        totalBytes: { type: integer, format: int64 }
+    BlobStoreSummary:
+      type: object
+      required: [name, type, blobCount, totalBytes, repositories]
+      properties:
+        name: { type: string }
+        type: { type: string }
+        blobCount: { type: integer, format: int64 }
+        totalBytes: { type: integer, format: int64 }
+        repositories: { type: integer, format: int64 }
+    UsageOverview:
+      type: object
+      required: [range, from, bucketSeconds, scope, totals, requestRate, series, topRepositories, inventory, scan]
+      properties:
+        range: { type: string }
+        from: { type: string, format: date-time }
+        bucketSeconds: { type: integer }
+        scope: { type: string, enum: [readable, all], description: "readable: only repositories the caller can read" }
+        totals: { $ref: "#/components/schemas/UsageCounts" }
+        requestRate: { type: number, description: Requests per second over the last 5 minutes }
+        series:
+          type: array
+          items: { $ref: "#/components/schemas/UsagePoint" }
+        topRepositories:
+          type: array
+          items: { $ref: "#/components/schemas/RepositoryUsage" }
+        inventory:
+          type: array
+          description: Repositories and content per format
+          items: { $ref: "#/components/schemas/FormatInventory" }
+        scan:
+          type: object
+          description: Components by scan state (plus quarantined)
+          additionalProperties: { type: integer, format: int64 }
+        storage:
+          type: array
+          description: Blob store usage (administrators only)
+          items: { $ref: "#/components/schemas/BlobStoreSummary" }
+    RepositoryUsageReport:
+      type: object
+      required: [repository, range, from, bucketSeconds, totals, requestRate, series]
+      properties:
+        repository: { type: string }
+        range: { type: string }
+        from: { type: string, format: date-time }
+        bucketSeconds: { type: integer }
+        totals: { $ref: "#/components/schemas/UsageCounts" }
+        requestRate: { type: number }
+        series:
+          type: array
+          items: { $ref: "#/components/schemas/UsagePoint" }
+    ActivityEvent:
+      type: object
+      required: [id, at, repository, format, kind, path, actor, actorKind, remoteIp, userAgent, bytes]
+      properties:
+        id: { type: integer, format: int64 }
+        at: { type: string, format: date-time }
+        repository: { type: string }
+        format: { type: string }
+        kind: { type: string, enum: [download, upload, delete] }
+        path: { type: string }
+        componentId: { type: string }
+        component: { type: string, description: name@version }
+        actor: { type: string }
+        actorKind: { type: string }
+        remoteIp: { type: string }
+        userAgent: { type: string }
+        bytes: { type: integer, format: int64 }
