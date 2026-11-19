@@ -13,8 +13,8 @@ uploads everything the registries need:
 ### 1. Repository
 
 The repository must be **public**, named `terraform-provider-entrepot`, and owned by the
-namespace you publish under (`geoffo-dev`). It also needs a `LICENSE` file; both registries
-require one. Choose a license and add it before the first release.
+namespace you publish under (`geoffo-dev`). It also needs a `LICENSE` file, which both registries
+require; the provider is licensed under Apache-2.0 (`LICENSE`).
 
 ### 2. GPG signing key
 

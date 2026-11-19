@@ -84,3 +84,7 @@ provider_installation {
 ```
 
 Releasing and publishing to the registries is described in [PUBLISHING.md](PUBLISHING.md).
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE).
