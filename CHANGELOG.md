@@ -1,8 +1,15 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.1
 
-Initial release.
+First published release. The provider is the same as 0.1.0. The 0.1.0 release was never published to the registries because its checksum file was signed with an ed25519 key.
+
+* Release signing is non-interactive. gpg reads the passphrase from stdin, so a missing or wrong `PASSPHRASE` fails immediately instead of hanging the release job.
+* The release job has a 30-minute timeout.
+
+## 0.1.0
+
+Initial version (not published to the registries).
 
 * Resources:
   * `entrepot_blob_store`, `entrepot_repository`;

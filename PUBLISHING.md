@@ -13,14 +13,17 @@ uploads everything the registries need:
 ### 1. Repository
 
 The repository must be **public**, named `terraform-provider-entrepot`, and owned by the
-namespace you publish under (`entrepotproj`). It also needs a `LICENSE` file, which both registries
+namespace you publish under (`entrepotproj`). Neither registry can see a private repository. It also needs a `LICENSE` file, which both registries
 require; the provider is licensed under Apache-2.0 (`LICENSE`).
 
 ### 2. GPG signing key
 
+Use an **RSA** key. The Terraform Registry cannot verify ed25519/EdDSA signatures, and reports
+them as "SHASUM signature failed verification: Invalid signature".
+
 ```shell
-gpg --full-generate-key                      # RSA 4096, no expiry or a long one
-gpg --list-secret-keys --keyid-format=long   # note the key ID
+gpg --quick-generate-key "Entrepot releases <you@example.com>" rsa4096 sign 3y
+gpg --list-secret-keys --keyid-format=long   # note the key ID after rsa4096/
 gpg --armor --export-secret-keys <KEY_ID> > private.asc
 gpg --armor --export <KEY_ID> > public.asc
 ```
@@ -30,7 +33,9 @@ In GitHub, go to **Settings → Secrets and variables → Actions** and add:
 * `GPG_PRIVATE_KEY`: the contents of `private.asc`;
 * `PASSPHRASE`: the key passphrase.
 
-Then delete `private.asc`.
+Then delete `private.asc`. goreleaser hands `PASSPHRASE` to gpg on stdin
+(`--pinentry-mode loopback --passphrase-fd 0`). If it is wrong, the release fails at the
+signing step with "Bad passphrase".
 
 ### 3. Terraform Registry
 
@@ -55,8 +60,8 @@ The registry bot opens a PR; once it is merged, new GitHub releases are picked u
 ## Cutting a release
 
 ```shell
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.1
+git push origin v0.1.1
 ```
 
 Check the workflow run, then confirm the release is visible on each registry:
@@ -75,6 +80,15 @@ To try the release pipeline locally without signing:
 ```shell
 goreleaser release --snapshot --clean --skip=sign
 ```
+
+### Fixing a bad release
+
+Re-running a release job builds from the tagged commit, so it can't pick up changes made since,
+and goreleaser can't overwrite assets that are already uploaded. To fix a release:
+
+1. Fix the problem on `main` (or change the secrets).
+2. Delete the GitHub release, then tag a **new** version. Don't move an existing tag:
+   registries and caches may already have recorded it.
 
 ## Private distribution (optional)
 

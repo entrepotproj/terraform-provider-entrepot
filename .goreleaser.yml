@@ -34,8 +34,17 @@ checksum:
   algorithm: sha256
 signs:
   - artifacts: checksum
+    # Non-interactive: gpg reads the passphrase from stdin, so a missing or wrong
+    # PASSPHRASE fails at once ("Bad passphrase") instead of waiting for a
+    # pinentry prompt that never comes.
+    stdin: "{{ .Env.PASSPHRASE }}"
     args:
       - "--batch"
+      - "--yes"
+      - "--pinentry-mode"
+      - "loopback"
+      - "--passphrase-fd"
+      - "0"
       - "--local-user"
       - "{{ .Env.GPG_FINGERPRINT }}"
       - "--output"
