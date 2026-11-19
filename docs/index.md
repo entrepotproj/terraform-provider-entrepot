@@ -6,8 +6,9 @@ description: |-
 
 # Entrepot Provider
 
-The Entrepot provider configures an [Entrepot](https://github.com/geoffo-dev/package-repository)
-package repository manager through its management API. It covers:
+The Entrepot provider configures an [Entrepot](https://github.com/entrepotproj/entrepot)
+package repository manager through its management API. Guides and the server documentation are
+at <https://docs.entrepotproj.io>. It covers:
 
 * blob stores;
 * hosted, proxy and group repositories for raw, PyPI, npm, Docker, Apt, Yum and Helm;
@@ -37,7 +38,7 @@ curl -H "Authorization: Bearer $BOOTSTRAP_TOKEN" -X POST https://entrepot.exampl
 terraform {
   required_providers {
     entrepot = {
-      source  = "geoffo-dev/entrepot"
+      source  = "entrepotproj/entrepot"
       version = "~> 0.1"
     }
   }

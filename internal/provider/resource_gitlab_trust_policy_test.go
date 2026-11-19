@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/acctest"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/acctest"
 )
 
 func TestAccGitLabTrustPolicy(t *testing.T) {

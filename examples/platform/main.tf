@@ -11,7 +11,7 @@
 terraform {
   required_providers {
     entrepot = {
-      source  = "geoffo-dev/entrepot"
+      source  = "entrepotproj/entrepot"
       version = "~> 0.1"
     }
   }

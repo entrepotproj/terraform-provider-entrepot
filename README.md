@@ -1,6 +1,6 @@
 # Terraform / OpenTofu provider for Entrepot
 
-Manage an [Entrepot](https://github.com/geoffo-dev/package-repository) package repository
+Manage an [Entrepot](https://github.com/entrepotproj/entrepot) package repository
 manager as code. It covers blob stores, repositories, access control, GitLab CI trust, scanning,
 cleanup, routing and signing keys.
 
@@ -8,7 +8,7 @@ cleanup, routing and signing keys.
 terraform {
   required_providers {
     entrepot = {
-      source  = "geoffo-dev/entrepot"   # registry.terraform.io or registry.opentofu.org
+      source  = "entrepotproj/entrepot"   # registry.terraform.io or registry.opentofu.org
       version = "~> 0.1"
     }
   }
@@ -29,6 +29,8 @@ resource "entrepot_repository" "npmjs" {
 }
 ```
 
+* Guides (installation, a platform walkthrough, tips) and the Entrepot documentation:
+  <https://docs.entrepotproj.io>.
 * Resource and data source documentation: [`docs/`](docs/), also rendered on the registries.
 * A complete platform setup: [`examples/platform`](examples/platform).
 
@@ -68,7 +70,7 @@ make testacc ENTREPOT_BINARY=/path/to/entrepot \
   ENTREPOT_TEST_DATABASE_URL=postgres://postgres@localhost:5432/postgres?sslmode=disable
 make testacc TF=tofu ENTREPOT_BINARY=…   # same suite against OpenTofu
 make docs                      # regenerate docs/ with tfplugindocs
-make sync-spec SERVER=../package-repository   # refresh the vendored OpenAPI spec + client
+make sync-spec SERVER=../entrepot   # refresh the vendored OpenAPI spec + client
 ```
 
 The API client in `internal/client` is generated from the server's OpenAPI document, vendored
@@ -78,7 +80,7 @@ To use a local build, add this to `~/.terraformrc` (OpenTofu: `~/.tofurc`):
 
 ```hcl
 provider_installation {
-  dev_overrides { "geoffo-dev/entrepot" = "/path/to/terraform-provider-entrepot" }
+  dev_overrides { "entrepotproj/entrepot" = "/path/to/terraform-provider-entrepot" }
   direct {}
 }
 ```

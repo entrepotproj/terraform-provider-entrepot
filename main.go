@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/provider"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/provider"
 )
 
 // version is set by goreleaser.
@@ -23,7 +23,7 @@ func main() {
 	flag.Parse()
 
 	err := providerserver.Serve(context.Background(), provider.New(version), providerserver.ServeOpts{
-		Address: "registry.terraform.io/geoffo-dev/entrepot",
+		Address: "registry.terraform.io/entrepotproj/entrepot",
 		Debug:   debug,
 	})
 	if err != nil {

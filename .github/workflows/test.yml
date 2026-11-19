@@ -69,7 +69,7 @@ jobs:
           tofu_wrapper: false
       - name: Extract the Entrepot server binary from its image
         env:
-          ENTREPOT_IMAGE: ghcr.io/geoffo-dev/entrepot:${{ vars.ENTREPOT_VERSION || 'latest' }}
+          ENTREPOT_IMAGE: ghcr.io/entrepotproj/entrepot:${{ vars.ENTREPOT_VERSION || 'latest' }}
         run: |
           docker create --name entrepot "$ENTREPOT_IMAGE"
           docker cp entrepot:/usr/local/bin/entrepot ./entrepot-server
@@ -81,7 +81,7 @@ jobs:
           ENTREPOT_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
           TF_ACC_TERRAFORM_PATH: ${{ matrix.cli == 'tofu' && '/usr/local/bin/tofu' || '' }}
           TF_ACC_PROVIDER_HOST: ${{ matrix.cli == 'tofu' && 'registry.opentofu.org' || 'registry.terraform.io' }}
-          TF_ACC_PROVIDER_NAMESPACE: geoffo-dev
+          TF_ACC_PROVIDER_NAMESPACE: entrepotproj
         run: |
           if [ "${{ matrix.cli }}" = "terraform" ]; then export TF_ACC_TERRAFORM_PATH="$(which terraform)"; else export TF_ACC_TERRAFORM_PATH="$(which tofu)"; fi
           go test -v -count=1 -timeout 15m ./internal/provider/

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/acctest"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/acctest"
 )
 
 func TestMain(m *testing.M) { acctest.Main(m) }

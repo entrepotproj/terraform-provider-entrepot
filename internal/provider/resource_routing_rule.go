@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/client"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/client"
 )
 
 func init() { registerResource(NewRoutingRuleResource) }

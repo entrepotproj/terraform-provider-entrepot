@@ -1,6 +1,6 @@
 TF ?= terraform
-SERVER ?= ../package-repository
-PLUGIN_DIR := $(HOME)/.terraform.d/plugins/registry.terraform.io/geoffo-dev/entrepot/0.0.0-dev/$(shell go env GOOS)_$(shell go env GOARCH)
+SERVER ?= ../entrepot
+PLUGIN_DIR := $(HOME)/.terraform.d/plugins/registry.terraform.io/entrepotproj/entrepot/0.0.0-dev/$(shell go env GOOS)_$(shell go env GOARCH)
 
 .PHONY: build install test testacc docs generate sync-spec lint
 
@@ -16,7 +16,7 @@ test:
 	go test ./...
 
 # Needs Postgres and an entrepot server binary (see internal/acctest):
-#   make testacc ENTREPOT_BINARY=../package-repository/bin/entrepot
+#   make testacc ENTREPOT_BINARY=../entrepot/bin/entrepot
 #   make testacc TF=tofu ENTREPOT_BINARY=...
 testacc:
 	TF_ACC=1 TF_ACC_TERRAFORM_PATH=$(shell which $(TF)) go test -v -count=1 -timeout 30m ./internal/provider/

@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/acctest"
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/client"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/acctest"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/client"
 )
 
 // checkTokenPrincipal authenticates with the token in state and checks the

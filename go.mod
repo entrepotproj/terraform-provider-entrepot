@@ -1,4 +1,4 @@
-module github.com/geoffo-dev/terraform-provider-entrepot
+module github.com/entrepotproj/terraform-provider-entrepot
 
 go 1.26.0
 

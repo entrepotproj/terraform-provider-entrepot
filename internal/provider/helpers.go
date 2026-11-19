@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/client"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/client"
 )
 
 // base holds the configured API client for resources and data sources.

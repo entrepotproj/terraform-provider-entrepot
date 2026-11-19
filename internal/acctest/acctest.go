@@ -30,7 +30,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/client"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/client"
 )
 
 // Server describes the Entrepot instance under test.

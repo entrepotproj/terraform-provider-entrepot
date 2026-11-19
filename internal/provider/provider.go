@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/client"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/client"
 )
 
 var _ provider.Provider = (*entrepotProvider)(nil)
@@ -42,7 +42,7 @@ func (p *entrepotProvider) Metadata(_ context.Context, _ provider.MetadataReques
 
 func (p *entrepotProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		MarkdownDescription: "Configure [Entrepot](https://github.com/geoffo-dev/package-repository) — repositories, " +
+		MarkdownDescription: "Configure [Entrepot](https://github.com/entrepotproj/entrepot) — repositories, " +
 			"blob stores, access control, scanning, cleanup and routing — as code.",
 		Attributes: map[string]schema.Attribute{
 			"url": schema.StringAttribute{

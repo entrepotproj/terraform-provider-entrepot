@@ -13,7 +13,7 @@ uploads everything the registries need:
 ### 1. Repository
 
 The repository must be **public**, named `terraform-provider-entrepot`, and owned by the
-namespace you publish under (`geoffo-dev`). It also needs a `LICENSE` file, which both registries
+namespace you publish under (`entrepotproj`). It also needs a `LICENSE` file, which both registries
 require; the provider is licensed under Apache-2.0 (`LICENSE`).
 
 ### 2. GPG signing key
@@ -34,9 +34,11 @@ Then delete `private.asc`.
 
 ### 3. Terraform Registry
 
-1. Sign in at <https://registry.terraform.io> with the GitHub account that owns `geoffo-dev`.
-2. **User settings → Signing keys → Add a GPG key**, and paste `public.asc`.
-3. **Publish → Provider**, then select `geoffo-dev/terraform-provider-entrepot`. The registry
+1. Sign in at <https://registry.terraform.io> with a GitHub account that owns the `entrepotproj`
+   organisation, and grant the registry access to the organisation when GitHub asks.
+2. **User settings → Signing keys → Add a GPG key**, choose the `entrepotproj` namespace and
+   paste `public.asc`.
+3. **Publish → Provider**, then select `entrepotproj/terraform-provider-entrepot`. The registry
    installs a webhook and imports existing and future releases.
 
 ### 4. OpenTofu registry
@@ -44,8 +46,8 @@ Then delete `private.asc`.
 The OpenTofu registry is a GitHub repository (`opentofu/registry`) fed by issue forms:
 
 1. Open <https://github.com/opentofu/registry/issues/new/choose> and choose
-   **Submit new Provider**. Enter `geoffo-dev/terraform-provider-entrepot`.
-2. Choose **Submit new Provider Signing Key**, enter the namespace `geoffo-dev` and paste
+   **Submit new Provider**. Enter `entrepotproj/terraform-provider-entrepot`.
+2. Choose **Submit new Provider Signing Key**, enter the namespace `entrepotproj` and paste
    `public.asc`. OpenTofu verifies the `SHA256SUMS` signature with it.
 
 The registry bot opens a PR; once it is merged, new GitHub releases are picked up automatically.
@@ -59,8 +61,8 @@ git push origin v0.1.0
 
 Check the workflow run, then confirm the release is visible on each registry:
 
-* <https://registry.terraform.io/providers/geoffo-dev/entrepot>
-* `tofu init` against a configuration that uses `source = "geoffo-dev/entrepot"`
+* <https://registry.terraform.io/providers/entrepotproj/entrepot>
+* `tofu init` against a configuration that uses `source = "entrepotproj/entrepot"`
 
 Before tagging:
 

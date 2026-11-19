@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/acctest"
-	"github.com/geoffo-dev/terraform-provider-entrepot/internal/client"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/acctest"
+	"github.com/entrepotproj/terraform-provider-entrepot/internal/client"
 )
 
 // serverFingerprint returns the repository's active key fingerprint on the server.
