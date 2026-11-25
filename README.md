@@ -85,6 +85,8 @@ provider_installation {
 }
 ```
 
+PR titles must be [Conventional Commits](https://www.conventionalcommits.org) (`feat: …`,
+`fix: …`): release-please builds the version and [CHANGELOG.md](CHANGELOG.md) from them.
 Releasing and publishing to the registries is described in [PUBLISHING.md](PUBLISHING.md).
 
 ## License

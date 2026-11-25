@@ -1,0 +1,27 @@
+name: PR title
+
+# release-please builds versions and the CHANGELOG from commit messages on
+# main. PRs are squash-merged with the PR title as the commit message, so the
+# title must be a Conventional Commit: "feat: …", "fix(web): …", "feat!: …".
+# See PUBLISHING.md.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions: {}
+
+jobs:
+  conventional-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          types='feat|fix|perf|deps|revert|docs|refactor|test|build|ci|chore|style'
+          if printf '%s\n' "$TITLE" | grep -Eq "^($types)(\([A-Za-z0-9._/-]+\))?!?: [^ ]"; then
+            echo "OK: $TITLE"
+            exit 0
+          fi
+          echo "::error::The PR title must be a Conventional Commit, e.g. 'feat: add an entrepot_webhook resource', 'fix(repository): …' or 'feat!: …' for a breaking change. Types: ${types//|/, }."
+          exit 1

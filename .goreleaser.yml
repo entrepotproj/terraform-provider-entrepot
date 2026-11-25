@@ -24,7 +24,7 @@ builds:
         goarch: arm
     binary: "{{ .ProjectName }}_v{{ .Version }}"
 archives:
-  - format: zip
+  - formats: [zip]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 checksum:
   extra_files:
@@ -55,6 +55,12 @@ release:
   extra_files:
     - glob: terraform-registry-manifest.json
       name_template: "{{ .ProjectName }}_{{ .Version }}_manifest.json"
+  # release-please creates a draft release named after the tag. goreleaser
+  # finds it by that name, uploads the assets, keeps its notes and then
+  # publishes it, so the registries never see a release without its files.
+  name_template: "{{ .Tag }}"
+  use_existing_draft: true
+  mode: keep-existing
   draft: false
 changelog:
   use: github
