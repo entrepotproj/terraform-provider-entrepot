@@ -1,23 +1,81 @@
 name: Release
 
-# Pushing a v* tag builds signed release artifacts. The Terraform Registry and
-# the OpenTofu registry both pick up new GitHub releases of this repository.
+# Every push to main runs the tests, then semantic-release. When the commits
+# since the last v* tag include a fix, a feature or a breaking change, it pushes
+# the next tag, and goreleaser builds, signs and publishes the GitHub release
+# from that tag. The Terraform Registry and the OpenTofu registry both pick up
+# new GitHub releases of this repository. See PUBLISHING.md.
+#
+# semantic-release only tags: goreleaser creates the release, so the registries
+# never see a published release whose zips and signed SHA256SUMS are missing.
 on:
   push:
-    tags: ["v*"]
+    branches: [main]
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  release:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: write
+    outputs:
+      published: ${{ steps.semrel.outputs.published }}
+      version: ${{ steps.semrel.outputs.version }}
+      tag: ${{ steps.semrel.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: semantic-release
+        id: semrel
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          npx --yes
+          -p semantic-release@25.0.9
+          -p @semantic-release/changelog@7.0.0
+          -p @semantic-release/exec@7.1.0
+          -p conventional-changelog-conventionalcommits@9.3.1
+          semantic-release
+      - name: Keep the release notes for goreleaser
+        if: steps.semrel.outputs.published == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
+          retention-days: 7
+
   goreleaser:
     runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    permissions:
+      contents: write
     # A full build takes about 5 minutes; anything much longer is a hang.
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ needs.release.outputs.tag }}
           fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+          # Outside the checkout, so goreleaser sees a clean git tree.
+          path: ${{ runner.temp }}/release-notes
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
@@ -30,7 +88,7 @@ jobs:
       - uses: goreleaser/goreleaser-action@v6
         with:
           version: "~> v2"
-          args: release --clean
+          args: release --clean --release-notes ${{ runner.temp }}/release-notes/release-notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.gpg.outputs.fingerprint }}

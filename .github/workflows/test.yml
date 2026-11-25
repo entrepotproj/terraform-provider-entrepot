@@ -1,9 +1,10 @@
 name: Tests
 
+# Pull requests run this directly. On main it runs as the first job of the
+# Release workflow, so a release is only cut from a commit that passed.
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read

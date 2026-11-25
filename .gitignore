@@ -4,3 +4,5 @@
 .terraform/
 *.tfstate*
 .terraform.lock.hcl
+# Written by semantic-release in the Release workflow.
+/release-notes.md

@@ -1,8 +1,8 @@
 # Publishing to the Terraform Registry and the OpenTofu registry
 
 Both registries read GitHub releases of this repository, so a single tagged release serves
-both. The release workflow (`.github/workflows/release.yml`) runs goreleaser on `v*` tags and
-uploads everything the registries need:
+both. Releases are cut automatically from the commit messages on `main` (see
+[Cutting a release](#cutting-a-release)), and goreleaser uploads everything the registries need:
 
 * `terraform-provider-entrepot_<version>_<os>_<arch>.zip`, one per platform;
 * `terraform-provider-entrepot_<version>_SHA256SUMS`, plus its detached GPG signature `.sig`;
@@ -59,19 +59,45 @@ The registry bot opens a PR; once it is merged, new GitHub releases are picked u
 
 ## Cutting a release
 
-```shell
-git tag v0.1.1
-git push origin v0.1.1
-```
+Nobody tags by hand. Every push to `main` runs the `Release` workflow
+(`.github/workflows/release.yml`):
 
-Check the workflow run, then confirm the release is visible on each registry:
+1. the unit and acceptance tests (`.github/workflows/test.yml`) run against the pushed commit.
+   The acceptance tests pull the server image `ghcr.io/entrepotproj/entrepot:latest` (or the
+   tag in the `ENTREPOT_VERSION` repository variable), so that package must be public;
+2. [semantic-release](https://semantic-release.gitbook.io/) looks at the commits since the last
+   `v*` tag. If one of them warrants a release, it works out the next version and pushes the
+   tag `vX.Y.Z`;
+3. goreleaser checks out that tag, builds the zips, signs `SHA256SUMS` and publishes the GitHub
+   release, with notes generated from the commits.
+
+The registries then import the release. Check the workflow run, then confirm the version is
+visible on each registry:
 
 * <https://registry.terraform.io/providers/entrepotproj/entrepot>
 * `tofu init` against a configuration that uses `source = "entrepotproj/entrepot"`
 
-Before tagging:
+### Commit messages
 
-* Update `CHANGELOG.md`.
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/). The type decides
+the release:
+
+| Commit | Example | Release |
+|---|---|---|
+| `fix:` or `perf:` | `fix(repository): keep the blob store on import` | patch (`0.1.1` → `0.1.2`) |
+| `feat:` | `feat: add the entrepot_webhook resource` | minor (`0.1.1` → `0.2.0`) |
+| `!` after the type, or a `BREAKING CHANGE:` footer | `feat(role)!: rename permissions to grants` | major (`0.1.1` → `1.0.0`) |
+| anything else (`docs:`, `chore:`, `ci:`, `test:`, `refactor:`, …) | `docs: regenerate the resource docs` | none |
+
+The highest type among the new commits wins, and a push with no releasing commit publishes
+nothing. When a pull request is squash-merged, its title becomes the commit message, so the
+title must follow the convention; with a merge commit, the commits on the branch are what count.
+semantic-release has no special handling of `0.x`: a breaking change bumps to `1.0.0`.
+
+The configuration is `.releaserc.json`; the tool versions are pinned in the workflow.
+
+### Before merging
+
 * Run `make docs` and commit `docs/`; the registries render it.
 * If the server API changed, run `make sync-spec`.
 
@@ -83,12 +109,12 @@ goreleaser release --snapshot --clean --skip=sign
 
 ### Fixing a bad release
 
-Re-running a release job builds from the tagged commit, so it can't pick up changes made since,
-and goreleaser can't overwrite assets that are already uploaded. To fix a release:
+Re-running the failed jobs of a `Release` run builds from the same tag, which is enough when a
+secret was wrong or a step flaked. goreleaser can't overwrite assets that are already uploaded,
+so delete the GitHub release first if it exists.
 
-1. Fix the problem on `main` (or change the secrets).
-2. Delete the GitHub release, then tag a **new** version. Don't move an existing tag:
-   registries and caches may already have recorded it.
+If the code itself was wrong, merge the fix as a `fix:` commit: the next run releases a new
+patch version. Don't move an existing tag: registries and caches may already have recorded it.
 
 ## Private distribution (optional)
 
