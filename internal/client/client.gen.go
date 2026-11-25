@@ -871,17 +871,21 @@ type CleanupSettings struct {
 
 // Component defines model for Component.
 type Component struct {
-	Attrs       map[string]interface{} `json:"attrs"`
-	CreatedAt   time.Time              `json:"createdAt"`
-	Format      string                 `json:"format"`
-	Id          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Quarantined *bool                  `json:"quarantined,omitempty"`
-	Repository  string                 `json:"repository"`
-	ScanState   *ScanState             `json:"scanState,omitempty"`
-	ScannedAt   *time.Time             `json:"scannedAt,omitempty"`
-	UpdatedAt   time.Time              `json:"updatedAt"`
-	Version     string                 `json:"version"`
+	Attrs         map[string]interface{} `json:"attrs"`
+	CreatedAt     time.Time              `json:"createdAt"`
+	FindingCounts *SeverityCounts        `json:"findingCounts,omitempty"`
+
+	// Findings Search with `withFindings` only. The most severe unwaived findings, at most five (`findingCounts` counts all of them).
+	Findings    *[]Finding `json:"findings,omitempty"`
+	Format      string     `json:"format"`
+	Id          string     `json:"id"`
+	Name        string     `json:"name"`
+	Quarantined *bool      `json:"quarantined,omitempty"`
+	Repository  string     `json:"repository"`
+	ScanState   *ScanState `json:"scanState,omitempty"`
+	ScannedAt   *time.Time `json:"scannedAt,omitempty"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	Version     string     `json:"version"`
 }
 
 // ComponentDetail defines model for ComponentDetail.
@@ -1003,15 +1007,18 @@ type HostedSettings struct {
 
 // Me defines model for Me.
 type Me struct {
-	Admin    bool                    `json:"admin"`
-	Claims   *map[string]interface{} `json:"claims,omitempty"`
-	Email    *string                 `json:"email,omitempty"`
-	Groups   []string                `json:"groups"`
-	Kind     MeKind                  `json:"kind"`
-	Name     string                  `json:"name"`
-	Policies []string                `json:"policies"`
-	Scopes   []string                `json:"scopes"`
-	UserId   *string                 `json:"userId,omitempty"`
+	Admin  bool                    `json:"admin"`
+	Claims *map[string]interface{} `json:"claims,omitempty"`
+	Email  *string                 `json:"email,omitempty"`
+
+	// GivenName User's first name
+	GivenName *string  `json:"givenName,omitempty"`
+	Groups    []string `json:"groups"`
+	Kind      MeKind   `json:"kind"`
+	Name      string   `json:"name"`
+	Policies  []string `json:"policies"`
+	Scopes    []string `json:"scopes"`
+	UserId    *string  `json:"userId,omitempty"`
 }
 
 // MeKind defines model for Me.Kind.
@@ -1705,8 +1712,17 @@ type SearchComponentsParams struct {
 	Format     *string `form:"format,omitempty" json:"format,omitempty"`
 	Repository *string `form:"repository,omitempty" json:"repository,omitempty"`
 	Version    *string `form:"version,omitempty" json:"version,omitempty"`
-	Limit      *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
-	Offset     *Offset `form:"offset,omitempty" json:"offset,omitempty"`
+
+	// ScanState Only components in this scan state
+	ScanState *ScanState `form:"scanState,omitempty" json:"scanState,omitempty"`
+
+	// Quarantined Only quarantined (true) or not quarantined (false) components
+	Quarantined *bool `form:"quarantined,omitempty" json:"quarantined,omitempty"`
+
+	// WithFindings Include `findingCounts` and the most severe `findings` of each component
+	WithFindings *bool   `form:"withFindings,omitempty" json:"withFindings,omitempty"`
+	Limit        *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+	Offset       *Offset `form:"offset,omitempty" json:"offset,omitempty"`
 }
 
 // CreateBlobStoreJSONRequestBody defines body for CreateBlobStore for application/json ContentType.
@@ -6906,6 +6922,42 @@ func NewSearchComponentsRequest(server string, params *SearchComponentsParams) (
 		if params.Version != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "version", *params.Version, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.ScanState != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "scanState", *params.ScanState, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Quarantined != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "quarantined", *params.Quarantined, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.WithFindings != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "withFindings", *params.WithFindings, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
