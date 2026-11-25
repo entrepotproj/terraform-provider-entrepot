@@ -1,5 +1,10 @@
 # Changelog
 
+Releases after 0.1.1 are cut automatically from the commit messages on `main` (see
+[PUBLISHING.md](PUBLISHING.md#cutting-a-release)). Their notes are on the
+[GitHub releases page](https://github.com/entrepotproj/terraform-provider-entrepot/releases);
+this file covers the releases before that.
+
 ## 0.1.1
 
 First published release. The provider is the same as 0.1.0. The 0.1.0 release was never published to the registries because its checksum file was signed with an ed25519 key.
