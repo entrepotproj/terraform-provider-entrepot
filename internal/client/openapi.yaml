@@ -379,6 +379,12 @@ paths:
         - { name: format, in: query, schema: { type: string } }
         - { name: repository, in: query, schema: { type: string } }
         - { name: version, in: query, schema: { type: string } }
+        - { name: scanState, in: query, description: Only components in this scan state, schema: { $ref: "#/components/schemas/ScanState" } }
+        - { name: quarantined, in: query, description: Only quarantined (true) or not quarantined (false) components, schema: { type: boolean } }
+        - name: withFindings
+          in: query
+          description: Include `findingCounts` and the most severe `findings` of each component
+          schema: { type: boolean }
         - { $ref: "#/components/parameters/Limit" }
         - { $ref: "#/components/parameters/Offset" }
       responses:
@@ -1329,6 +1335,7 @@ components:
       properties:
         kind: { type: string, enum: [anonymous, user, gitlab, bootstrap] }
         name: { type: string }
+        givenName: { type: string, description: User's first name }
         userId: { type: string }
         email: { type: string }
         groups: { type: array, items: { type: string } }
@@ -1583,6 +1590,11 @@ components:
         scanState: { $ref: "#/components/schemas/ScanState" }
         quarantined: { type: boolean }
         scannedAt: { type: string, format: date-time }
+        findingCounts: { $ref: "#/components/schemas/SeverityCounts" }
+        findings:
+          type: array
+          description: Search with `withFindings` only. The most severe unwaived findings, at most five (`findingCounts` counts all of them).
+          items: { $ref: "#/components/schemas/Finding" }
     ComponentDetail:
       type: object
       required: [component, assets]
