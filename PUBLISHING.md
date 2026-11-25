@@ -96,6 +96,17 @@ semantic-release has no special handling of `0.x`: a breaking change bumps to `1
 
 The configuration is `.releaserc.json`; the tool versions are pinned in the workflow.
 
+### Dependency updates
+
+[Renovate](https://docs.renovatebot.com/) opens dependency PRs every Monday morning (UTC),
+configured in `.github/renovate.json`: one PR for minor and patch Go module updates, one for CI,
+and one per major update. Go module updates are `fix(deps):`, so merging one releases a patch;
+workflow actions and the semantic-release tooling are `ci(deps):` and release nothing. The
+examples, which pin this provider, are left alone. If an update changes the generated client or
+docs, the PR's CI says so: run `make generate` on the branch. Renovate runs as the
+[Renovate GitHub App](https://github.com/apps/renovate), which must be installed on the
+repository.
+
 ### Before merging
 
 * Run `make docs` and commit `docs/`; the registries render it.

@@ -1,0 +1,43 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Weekly dependency updates. The commit type decides the release (PUBLISHING.md): Go module updates ship in the provider and are fix(deps), a patch release; CI-only updates are ci(deps), which release nothing.",
+  "extends": ["config:recommended", ":semanticCommits", "schedule:weekly"],
+  "postUpdateOptions": ["gomodTidy"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "semantic-release and its plugins, pinned in the release workflow",
+      "managerFilePatterns": ["/^\\.github/workflows/release\\.ya?ml$/"],
+      "matchStrings": ["-p (?<depName>(?:@[a-z0-9-]+/)?[a-z0-9-]+)@(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "npm"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Updates ship in the provider: fix(deps), a patch release.",
+      "matchPackageNames": ["*"],
+      "semanticCommitType": "fix"
+    },
+    {
+      "description": "Actions and release tooling only affect CI: ci(deps), no release.",
+      "matchFileNames": [".github/workflows/**"],
+      "semanticCommitType": "ci"
+    },
+    {
+      "description": "The examples pin this provider itself and the docs are generated from them, so they are updated by hand.",
+      "matchManagers": ["terraform"],
+      "enabled": false
+    },
+    {
+      "description": "Minor and patch updates come as one PR per area each week; majors get their own PRs.",
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "Go modules"
+    },
+    {
+      "matchFileNames": [".github/workflows/**"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "groupName": "CI"
+    }
+  ]
+}
