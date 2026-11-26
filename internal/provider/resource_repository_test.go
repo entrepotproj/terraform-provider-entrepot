@@ -155,3 +155,69 @@ resource "entrepot_repository" "bad" {
 		}},
 	})
 }
+
+func TestAccRepositoryScanHoldAndBlockOnError(t *testing.T) {
+	s := testServer(t)
+	requireScanFeatures(t, s)
+	sfx := randSuffix()
+	cfg := func(scanExtra string) string {
+		return s.ProviderBlock() + fmt.Sprintf(`
+resource "entrepot_scanner" "s" {
+  name = "hold-grype-%[1]s"
+  type = "grype"
+}
+
+resource "entrepot_repository" "test" {
+  name       = "hold-npm-%[1]s"
+  format     = "npm"
+  kind       = "hosted"
+  blob_store = "default"
+  scan = {
+    scanners            = [entrepot_scanner.s.name]
+    mode                = "quarantine"
+    block_until_scanned = true
+%[2]s
+  }
+}
+
+data "entrepot_repository" "test" {
+  name = entrepot_repository.test.name
+}`, sfx, scanExtra)
+	}
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: protoV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: cfg("    hold_seconds   = 60\n    block_on_error = true"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("entrepot_repository.test", "scan.hold_seconds", "60"),
+					resource.TestCheckResourceAttr("entrepot_repository.test", "scan.block_on_error", "true"),
+					resource.TestCheckResourceAttr("data.entrepot_repository.test", "scan.hold_seconds", "60"),
+					resource.TestCheckResourceAttr("data.entrepot_repository.test", "scan.block_on_error", "true"),
+				),
+			},
+			{
+				Config: cfg("    hold_seconds   = 300\n    block_on_error = false"),
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction("entrepot_repository.test", plancheck.ResourceActionUpdate),
+				}},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("entrepot_repository.test", "scan.hold_seconds", "300"),
+					resource.TestCheckResourceAttr("entrepot_repository.test", "scan.block_on_error", "false"),
+				),
+			},
+			// Back to the server defaults: no hold, fail open.
+			{
+				Config: cfg("    hold_seconds = 0"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("entrepot_repository.test", "scan.hold_seconds", "0"),
+					resource.TestCheckResourceAttr("entrepot_repository.test", "scan.block_on_error", "false"),
+					resource.TestCheckResourceAttr("data.entrepot_repository.test", "scan.hold_seconds", "0"),
+				),
+			},
+			// Unset attributes keep the server's values (computed): no diff.
+			{Config: cfg(""), PlanOnly: true},
+			{ResourceName: "entrepot_repository.test", ImportState: true, ImportStateId: "hold-npm-" + sfx, ImportStateVerify: true},
+		},
+	})
+}

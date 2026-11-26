@@ -1481,6 +1481,20 @@ components:
           enum: [critical, high, medium, low]
           description: "Lowest severity that quarantines (default high)"
         blockUntilScanned: { type: boolean, description: "quarantine mode: block downloads until the first scan completes" }
+        holdSeconds:
+          type: integer
+          minimum: 0
+          maximum: 600
+          description: >-
+            quarantine mode with blockUntilScanned: keep a download of content that is still being scanned open for
+            up to this many seconds, waiting for the verdict (0, the default, refuses it at once with 403). When the
+            hold runs out the client gets 503 with Retry-After and X-Entrepot-Scan-Pending.
+        blockOnError:
+          type: boolean
+          description: >-
+            quarantine mode: block downloads of components whose latest scan by a configured scanner failed, until a
+            retry succeeds (failed scans are retried every scan.errorRetryInterval). Verdicts become strict: a
+            component stays pending until every configured scanner has scanned its current content.
         distro: { type: string, description: "Apt/Yum: distribution for vulnerability matching, e.g. debian-12, ubuntu-24.04, rocky-9" }
     CleanupSettings:
       type: object
@@ -1753,7 +1767,7 @@ components:
         passphrase: { type: string, writeOnly: true }
     ScannerType:
       type: string
-      enum: [trivy, grype, webhook]
+      enum: [trivy, grype, webhook, metadefender]
     TrivySettings:
       type: object
       properties:
@@ -1775,6 +1789,23 @@ components:
         url: { type: string, description: Endpoint that receives scan requests }
         secret: { type: string, writeOnly: true, description: HMAC-SHA256 key for the X-Entrepot-Signature header }
         timeoutSeconds: { type: integer, description: Time allowed for the callback (default 900) }
+    MetaDefenderSettings:
+      type: object
+      required: [url]
+      description: >-
+        OPSWAT MetaDefender Core. Every file of a component (except sidecars such as PyPI .metadata), or
+        every layer of a Docker image, is uploaded for analysis, or matched by hash with an earlier
+        analysis by the same rule.
+      properties:
+        url: { type: string, description: "MetaDefender Core REST API, e.g. https://metadefender.example.com:8008" }
+        apiKey: { type: string, writeOnly: true, description: Sent in the apikey header; kept when omitted on update and the URL is unchanged }
+        rule: { type: string, description: Rule (workflow) to process files with; empty for the server default }
+        timeoutSeconds: { type: integer, description: Time allowed to analyse all files of a component (default 600) }
+        concurrency: { type: integer, minimum: 0, maximum: 32, description: Files analysed at once (default 4) }
+        hashLookup: { type: boolean, description: Reuse earlier analyses of the same content by the same rule (default true) }
+        maxResultAgeHours: { type: integer, minimum: 0, description: Age after which earlier analyses are not reused (default 24) }
+        webUrl: { type: string, description: "Link to results in the MetaDefender console; {dataId} is replaced" }
+        caCertificate: { type: string, description: PEM certificates trusted for url (internal CAs) }
     ScannerInput:
       type: object
       required: [name, type]
@@ -1786,6 +1817,7 @@ components:
         trivy: { $ref: "#/components/schemas/TrivySettings" }
         grype: { $ref: "#/components/schemas/GrypeSettings" }
         webhook: { $ref: "#/components/schemas/WebhookScannerSettings" }
+        metadefender: { $ref: "#/components/schemas/MetaDefenderSettings" }
     Scanner:
       type: object
       required: [name, type, enabled, rescanIntervalHours, createdAt, updatedAt]
@@ -1797,6 +1829,7 @@ components:
         trivy: { $ref: "#/components/schemas/TrivySettings" }
         grype: { $ref: "#/components/schemas/GrypeSettings" }
         webhook: { $ref: "#/components/schemas/WebhookScannerSettings" }
+        metadefender: { $ref: "#/components/schemas/MetaDefenderSettings" }
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
     ScannerTestResult:
@@ -1820,7 +1853,7 @@ components:
         repository: { type: string }
         scanner: { type: string }
         status: { type: string, enum: [queued, running, done, failed] }
-        reason: { type: string, enum: [upload, proxy, manual, rescan] }
+        reason: { type: string, enum: [upload, proxy, manual, rescan, retry] }
         attempts: { type: integer }
         error: { type: string }
         runAfter: { type: string, format: date-time }
@@ -1829,12 +1862,21 @@ components:
         finishedAt: { type: string, format: date-time }
     Finding:
       type: object
-      required: [vulnId, severity, package, installedVersion, fixedVersion, title, url, waived]
+      required: [vulnId, kind, severity, package, installedVersion, fixedVersion, title, url, waived]
       properties:
-        vulnId: { type: string, example: CVE-2021-23337 }
+        vulnId:
+          type: string
+          example: CVE-2021-23337
+          description: >-
+            Vulnerability id, or for threats found by file scanners MALWARE:, SUSPICIOUS: or PUA: and the
+            threat name, or BLOCKED: and the reason the scanner's policy refused the file.
+        kind:
+          type: string
+          enum: [vulnerability, malware, policy]
+          description: Derived from vulnId. Waivers for "*" do not cover malware and policy findings.
         severity: { $ref: "#/components/schemas/Severity" }
-        package: { type: string }
-        installedVersion: { type: string }
+        package: { type: string, description: Package, or for file scanners the file (and path inside an archive) }
+        installedVersion: { type: string, description: Installed version, or for file scanners the start of the file's sha256 }
         fixedVersion: { type: string }
         title: { type: string }
         url: { type: string }
@@ -1863,6 +1905,19 @@ components:
         findings:
           type: array
           items: { $ref: "#/components/schemas/Finding" }
+        files:
+          type: array
+          description: How each file was analysed (file scanners)
+          items: { $ref: "#/components/schemas/ScannedFile" }
+    ScannedFile:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        sha256: { type: string }
+        dataId: { type: string, description: The scanner's id of the analysis }
+        result: { type: string, example: No Threat Detected }
+        cached: { type: boolean, description: An earlier analysis of the same content was reused }
     ComponentScans:
       type: object
       required: [scanState, quarantined, results, jobs]

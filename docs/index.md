@@ -62,7 +62,7 @@ These values are never returned by the API:
 
 * proxy passwords;
 * S3 secret keys;
-* scanner secrets;
+* scanner secrets (Trivy server token, webhook secret, MetaDefender API key);
 * signing private keys.
 
 The provider keeps the value from your configuration, so changes made to these values outside

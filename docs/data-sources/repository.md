@@ -112,8 +112,10 @@ Read-Only:
 
 Read-Only:
 
+- `block_on_error` (Boolean) Whether downloads of components whose latest scan failed are blocked (fail closed).
 - `block_until_scanned` (Boolean) Whether downloads are blocked until the first scan completes.
 - `distro` (String) Apt/Yum distribution used for vulnerability matching.
+- `hold_seconds` (Number) How long a download of content still being scanned waits for the verdict (0: refused at once).
 - `mode` (String) `off`, `warn` or `quarantine`.
 - `on_proxy_fetch` (Boolean) Whether components cached by a proxy are scanned.
 - `on_upload` (Boolean) Whether uploads are scanned.

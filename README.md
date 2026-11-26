@@ -51,7 +51,7 @@ resource "entrepot_repository" "npmjs" {
 * **Immutable fields.** Changing a repository's `name`, `format`, `kind` or `blob_store`, or a
   blob store's `name`/`type`, forces replacement. Replacing a repository **deletes its
   content**; use `lifecycle { prevent_destroy = true }` on important repositories.
-* **Write-only secrets.** Proxy passwords, S3 secret keys, scanner tokens and secrets, and
+* **Write-only secrets.** Proxy passwords, S3 secret keys, scanner tokens, secrets and API keys, and
   signing private keys are never returned by the API. The provider keeps your configured value,
   so changes made outside Terraform to these values are not detected.
 * **Out-of-band deletion.** Objects deleted outside Terraform are recreated on the next apply.

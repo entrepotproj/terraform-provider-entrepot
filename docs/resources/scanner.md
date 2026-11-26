@@ -3,13 +3,13 @@
 page_title: "entrepot_scanner Resource - entrepot"
 subcategory: ""
 description: |-
-  A vulnerability scanner that repositories can use through their scan.scanners setting. trivy and grype run the CLI on the Entrepot server (Trivy optionally in client/server mode); webhook delegates scans to an external service that calls back with results.
+  A vulnerability scanner that repositories can use through their scan.scanners setting. trivy and grype run the CLI on the Entrepot server (Trivy optionally in client/server mode); webhook delegates scans to an external service that calls back with results; metadefender sends the files of each package (and the layers of Docker images) to OPSWAT MetaDefender Core for malware analysis (Entrepot 1.2.0 or later).
   A scanner cannot be deleted while a repository uses it: remove it from the repositories' scan.scanners first (Terraform does this in the right order when the repository references the scanner resource).
 ---
 
 # entrepot_scanner (Resource)
 
-A vulnerability scanner that repositories can use through their `scan.scanners` setting. `trivy` and `grype` run the CLI on the Entrepot server (Trivy optionally in client/server mode); `webhook` delegates scans to an external service that calls back with results.
+A vulnerability scanner that repositories can use through their `scan.scanners` setting. `trivy` and `grype` run the CLI on the Entrepot server (Trivy optionally in client/server mode); `webhook` delegates scans to an external service that calls back with results; `metadefender` sends the files of each package (and the layers of Docker images) to OPSWAT MetaDefender Core for malware analysis (Entrepot 1.2.0 or later).
 
 A scanner cannot be deleted while a repository uses it: remove it from the repositories' `scan.scanners` first (Terraform does this in the right order when the repository references the scanner resource).
 
@@ -45,12 +45,31 @@ resource "entrepot_scanner" "webhook" {
   }
 }
 
+# OPSWAT MetaDefender Core: malware analysis of every package file (and of
+# Docker image layers). Requires Entrepot 1.2.0 or later.
+resource "entrepot_scanner" "metadefender" {
+  name                  = "metadefender"
+  type                  = "metadefender"
+  rescan_interval_hours = 168
+  metadefender = {
+    url     = "https://metadefender.security.svc:8008"
+    api_key = var.metadefender_api_key
+    rule    = "Packages"
+    web_url = "https://metadefender.example.com/#/public/process/dataId/{dataId}"
+  }
+}
+
 variable "trivy_token" {
   type      = string
   sensitive = true
 }
 
 variable "scan_webhook_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "metadefender_api_key" {
   type      = string
   sensitive = true
 }
@@ -62,12 +81,13 @@ variable "scan_webhook_secret" {
 ### Required
 
 - `name` (String) Scanner name. Changing it forces a new scanner.
-- `type` (String) `trivy`, `grype` or `webhook`. Changing it forces a new scanner.
+- `type` (String) `trivy`, `grype`, `webhook` or `metadefender`. Changing it forces a new scanner.
 
 ### Optional
 
 - `enabled` (Boolean) Disabled scanners are skipped. Default `true`.
 - `grype` (Attributes) Settings for `type = "grype"`. May be omitted to use the defaults. (see [below for nested schema](#nestedatt--grype))
+- `metadefender` (Attributes) Settings for `type = "metadefender"` (required for that type): an OPSWAT MetaDefender Core server (REST API v5). Requires Entrepot 1.2.0 or later. (see [below for nested schema](#nestedatt--metadefender))
 - `rescan_interval_hours` (Number) Re-scan components periodically, every this many hours (`0`, the default, never re-scans).
 - `trivy` (Attributes) Settings for `type = "trivy"`. May be omitted to use the defaults. (see [below for nested schema](#nestedatt--trivy))
 - `webhook` (Attributes) Settings for `type = "webhook"` (required for that type). (see [below for nested schema](#nestedatt--webhook))
@@ -84,6 +104,25 @@ Optional:
 - `binary` (String) Path to the `grype` CLI (server default `grype`).
 - `extra_args` (List of String) Extra command-line arguments passed to the scanner.
 - `timeout_seconds` (Number) Scan timeout in seconds.
+
+
+<a id="nestedatt--metadefender"></a>
+### Nested Schema for `metadefender`
+
+Required:
+
+- `url` (String) MetaDefender Core REST API, e.g. `https://metadefender.example.com:8008`.
+
+Optional:
+
+- `api_key` (String, Sensitive) API key, sent in the `apikey` header. Write-only: never returned by the API, so changes made outside Terraform are not detected. Removing it from the configuration keeps the value stored on the server. The stored key is dropped when `url` changes.
+- `ca_certificate` (String) PEM certificates to trust for `url`, when it uses an internal CA.
+- `concurrency` (Number) Files of a component analysed at once (server default 4, at most 32).
+- `hash_lookup` (Boolean) Reuse earlier analyses of the same content by the same rule, matched by sha256 (server default `true`).
+- `max_result_age_hours` (Number) Earlier analyses older than this are not reused (server default 24).
+- `rule` (String) Workflow rule to process files with (server default rule when unset).
+- `timeout_seconds` (Number) Time allowed to analyse all files of a component, in seconds (server default 600).
+- `web_url` (String) Link from findings to the result in the MetaDefender console; `{dataId}` is replaced, e.g. `https://metadefender.example.com:8008/#/public/process/dataId/{dataId}`.
 
 
 <a id="nestedatt--trivy"></a>
@@ -117,6 +156,7 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-# Scanners are imported by name. Secrets (trivy.server_token, webhook.secret) are not imported.
+# Scanners are imported by name. Secrets (trivy.server_token, webhook.secret,
+# metadefender.api_key) are not imported.
 terraform import entrepot_scanner.trivy trivy
 ```

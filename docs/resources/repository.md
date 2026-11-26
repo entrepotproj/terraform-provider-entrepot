@@ -31,6 +31,24 @@ resource "entrepot_repository" "npmjs" {
   }
 }
 
+# Raw files checked by MetaDefender before anyone can download them. A
+# download waits up to a minute for the verdict, and stays blocked while
+# MetaDefender is unavailable. hold_seconds and block_on_error require
+# Entrepot 1.2.0 or later.
+resource "entrepot_repository" "downloads" {
+  name       = "downloads"
+  format     = "raw"
+  kind       = "hosted"
+  blob_store = "default"
+  scan = {
+    scanners            = ["metadefender"]
+    mode                = "quarantine"
+    block_until_scanned = true
+    hold_seconds        = 60
+    block_on_error      = true
+  }
+}
+
 # Internal packages, published by CI.
 resource "entrepot_repository" "npm_internal" {
   name             = "npm-internal"
@@ -174,8 +192,10 @@ Optional:
 
 Optional:
 
-- `block_until_scanned` (Boolean)
+- `block_on_error` (Boolean) Quarantine mode: fail closed, blocking downloads of components whose latest scan failed until a retry succeeds. Verdicts become strict: a component stays pending until every selected scanner has scanned its current content. Server default: false. Requires Entrepot 1.2.0 or later.
+- `block_until_scanned` (Boolean) Quarantine mode: block downloads of components that have not been scanned yet. Server default: false.
 - `distro` (String) Apt/Yum: distribution for vulnerability matching, e.g. `debian-12`, `rocky-9`.
+- `hold_seconds` (Number) Quarantine mode with `block_until_scanned`: keep a download of content that is still being scanned open for up to this many seconds, waiting for the verdict, instead of refusing it at once. When the hold runs out the client gets `503` with `Retry-After`. Server default: 0 (no hold). Requires Entrepot 1.2.0 or later.
 - `mode` (String) `off`, `warn` (record findings) or `quarantine` (block downloads). Server default: warn.
 - `on_proxy_fetch` (Boolean)
 - `on_upload` (Boolean)
