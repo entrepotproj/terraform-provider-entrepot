@@ -105,6 +105,27 @@ func (e BlobStoreType) Valid() bool {
 	}
 }
 
+// Defines values for FindingKind.
+const (
+	Malware       FindingKind = "malware"
+	Policy        FindingKind = "policy"
+	Vulnerability FindingKind = "vulnerability"
+)
+
+// Valid indicates whether the value is a known member of the FindingKind enum.
+func (e FindingKind) Valid() bool {
+	switch e {
+	case Malware:
+		return true
+	case Policy:
+		return true
+	case Vulnerability:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for MeKind.
 const (
 	MeKindAnonymous MeKind = "anonymous"
@@ -245,6 +266,7 @@ const (
 	ScanJobReasonManual ScanJobReason = "manual"
 	ScanJobReasonProxy  ScanJobReason = "proxy"
 	ScanJobReasonRescan ScanJobReason = "rescan"
+	ScanJobReasonRetry  ScanJobReason = "retry"
 	ScanJobReasonUpload ScanJobReason = "upload"
 )
 
@@ -256,6 +278,8 @@ func (e ScanJobReason) Valid() bool {
 	case ScanJobReasonProxy:
 		return true
 	case ScanJobReasonRescan:
+		return true
+	case ScanJobReasonRetry:
 		return true
 	case ScanJobReasonUpload:
 		return true
@@ -386,15 +410,18 @@ func (e ScanState) Valid() bool {
 
 // Defines values for ScannerType.
 const (
-	Grype   ScannerType = "grype"
-	Trivy   ScannerType = "trivy"
-	Webhook ScannerType = "webhook"
+	Grype        ScannerType = "grype"
+	Metadefender ScannerType = "metadefender"
+	Trivy        ScannerType = "trivy"
+	Webhook      ScannerType = "webhook"
 )
 
 // Valid indicates whether the value is a known member of the ScannerType enum.
 func (e ScannerType) Valid() bool {
 	switch e {
 	case Grype:
+		return true
+	case Metadefender:
 		return true
 	case Trivy:
 		return true
@@ -924,18 +951,30 @@ type FileBlobStoreConfig struct {
 
 // Finding defines model for Finding.
 type Finding struct {
-	FixedVersion     string   `json:"fixedVersion"`
-	InstalledVersion string   `json:"installedVersion"`
-	Package          string   `json:"package"`
-	Severity         Severity `json:"severity"`
-	Title            string   `json:"title"`
-	Url              string   `json:"url"`
+	FixedVersion string `json:"fixedVersion"`
 
-	// VulnId Example: CVE-2021-23337
+	// InstalledVersion Installed version
+	InstalledVersion string `json:"installedVersion"`
+
+	// Kind Derived from vulnId. Waivers for "*" do not cover malware and policy findings.
+	Kind FindingKind `json:"kind"`
+
+	// Package Package
+	Package  string   `json:"package"`
+	Severity Severity `json:"severity"`
+	Title    string   `json:"title"`
+	Url      string   `json:"url"`
+
+	// VulnId Vulnerability id, or for threats found by file scanners MALWARE:, SUSPICIOUS: or PUA: and the threat name, or BLOCKED: and the reason the scanner's policy refused the file.
+	//
+	// Example: CVE-2021-23337
 	VulnId   string  `json:"vulnId"`
 	Waived   bool    `json:"waived"`
 	WaiverId *string `json:"waiverId,omitempty"`
 }
+
+// FindingKind Derived from vulnId. Waivers for "*" do not cover malware and policy findings.
+type FindingKind string
 
 // FormatInfo defines model for FormatInfo.
 type FormatInfo struct {
@@ -1023,6 +1062,36 @@ type Me struct {
 
 // MeKind defines model for Me.Kind.
 type MeKind string
+
+// MetaDefenderSettings OPSWAT MetaDefender Core. Every file of a component (except sidecars such as PyPI .metadata), or every layer of a Docker image, is uploaded for analysis, or matched by hash with an earlier analysis by the same rule.
+type MetaDefenderSettings struct {
+	// ApiKey Sent in the apikey header; kept when omitted on update and the URL is unchanged
+	ApiKey *string `json:"apiKey,omitempty"`
+
+	// CaCertificate PEM certificates trusted for url (internal CAs)
+	CaCertificate *string `json:"caCertificate,omitempty"`
+
+	// Concurrency Files analysed at once (default 4)
+	Concurrency *int `json:"concurrency,omitempty"`
+
+	// HashLookup Reuse earlier analyses of the same content by the same rule (default true)
+	HashLookup *bool `json:"hashLookup,omitempty"`
+
+	// MaxResultAgeHours Age after which earlier analyses are not reused (default 24)
+	MaxResultAgeHours *int `json:"maxResultAgeHours,omitempty"`
+
+	// Rule Rule (workflow) to process files with; empty for the server default
+	Rule *string `json:"rule,omitempty"`
+
+	// TimeoutSeconds Time allowed to analyse all files of a component (default 600)
+	TimeoutSeconds *int `json:"timeoutSeconds,omitempty"`
+
+	// Url MetaDefender Core REST API, e.g. https://metadefender.example.com:8008
+	Url string `json:"url"`
+
+	// WebUrl Link to results in the MetaDefender console; {dataId} is replaced
+	WebUrl *string `json:"webUrl,omitempty"`
+}
 
 // ProxySettings defines model for ProxySettings.
 type ProxySettings struct {
@@ -1260,8 +1329,11 @@ type ScanRequest struct {
 
 // ScanResult defines model for ScanResult.
 type ScanResult struct {
-	Counts    SeverityCounts   `json:"counts"`
-	Error     *string          `json:"error,omitempty"`
+	Counts SeverityCounts `json:"counts"`
+	Error  *string        `json:"error,omitempty"`
+
+	// Files How each file was analysed (file scanners)
+	Files     *[]ScannedFile   `json:"files,omitempty"`
 	Findings  []Finding        `json:"findings"`
 	Id        string           `json:"id"`
 	ScannedAt time.Time        `json:"scannedAt"`
@@ -1277,11 +1349,17 @@ type ScanResultStatus string
 
 // ScanSettings defines model for ScanSettings.
 type ScanSettings struct {
+	// BlockOnError quarantine mode: block downloads of components whose latest scan by a configured scanner failed, until a retry succeeds (failed scans are retried every scan.errorRetryInterval). Verdicts become strict: a component stays pending until every configured scanner has scanned its current content.
+	BlockOnError *bool `json:"blockOnError,omitempty"`
+
 	// BlockUntilScanned quarantine mode: block downloads until the first scan completes
 	BlockUntilScanned *bool `json:"blockUntilScanned,omitempty"`
 
 	// Distro Apt/Yum: distribution for vulnerability matching, e.g. debian-12, ubuntu-24.04, rocky-9
 	Distro *string `json:"distro,omitempty"`
+
+	// HoldSeconds quarantine mode with blockUntilScanned: keep a download of content that is still being scanned open for up to this many seconds, waiting for the verdict (0, the default, refuses it at once with 403). When the hold runs out the client gets 503 with Retry-After and X-Entrepot-Scan-Pending.
+	HoldSeconds *int `json:"holdSeconds,omitempty"`
 
 	// Mode warn: record findings only; quarantine: block downloads of components with findings at or above severityThreshold
 	Mode *ScanSettingsMode `json:"mode,omitempty"`
@@ -1308,11 +1386,28 @@ type ScanSettingsSeverityThreshold string
 // ScanState defines model for ScanState.
 type ScanState string
 
+// ScannedFile defines model for ScannedFile.
+type ScannedFile struct {
+	// Cached An earlier analysis of the same content was reused
+	Cached *bool `json:"cached,omitempty"`
+
+	// DataId The scanner's id of the analysis
+	DataId *string `json:"dataId,omitempty"`
+	Name   string  `json:"name"`
+
+	// Result Example: No Threat Detected
+	Result *string `json:"result,omitempty"`
+	Sha256 *string `json:"sha256,omitempty"`
+}
+
 // Scanner defines model for Scanner.
 type Scanner struct {
-	CreatedAt           time.Time               `json:"createdAt"`
-	Enabled             bool                    `json:"enabled"`
-	Grype               *GrypeSettings          `json:"grype,omitempty"`
+	CreatedAt time.Time      `json:"createdAt"`
+	Enabled   bool           `json:"enabled"`
+	Grype     *GrypeSettings `json:"grype,omitempty"`
+
+	// Metadefender OPSWAT MetaDefender Core. Every file of a component (except sidecars such as PyPI .metadata), or every layer of a Docker image, is uploaded for analysis, or matched by hash with an earlier analysis by the same rule.
+	Metadefender        *MetaDefenderSettings   `json:"metadefender,omitempty"`
 	Name                string                  `json:"name"`
 	RescanIntervalHours int                     `json:"rescanIntervalHours"`
 	Trivy               *TrivySettings          `json:"trivy,omitempty"`
@@ -1325,7 +1420,10 @@ type Scanner struct {
 type ScannerInput struct {
 	Enabled *bool          `json:"enabled,omitempty"`
 	Grype   *GrypeSettings `json:"grype,omitempty"`
-	Name    string         `json:"name"`
+
+	// Metadefender OPSWAT MetaDefender Core. Every file of a component (except sidecars such as PyPI .metadata), or every layer of a Docker image, is uploaded for analysis, or matched by hash with an earlier analysis by the same rule.
+	Metadefender *MetaDefenderSettings `json:"metadefender,omitempty"`
+	Name         string                `json:"name"`
 
 	// RescanIntervalHours Re-scan components periodically (0 = never)
 	RescanIntervalHours *int                    `json:"rescanIntervalHours,omitempty"`

@@ -2,8 +2,16 @@ package provider
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"fmt"
+	"math/big"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
@@ -167,6 +175,105 @@ resource "entrepot_scanner" "trivy" {
 	})
 }
 
+// testCertPEM is a self-signed certificate (the server checks that
+// ca_certificate holds PEM certificates).
+func testCertPEM(t *testing.T) string {
+	t.Helper()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpl := &x509.Certificate{SerialNumber: big.NewInt(1), Subject: pkix.Name{CommonName: "Test CA"},
+		NotBefore: time.Now().Add(-time.Hour), NotAfter: time.Now().Add(time.Hour), IsCA: true, BasicConstraintsValid: true}
+	der, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, &key.PublicKey, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}))
+}
+
+func TestAccScannerMetaDefender(t *testing.T) {
+	s := testServer(t)
+	requireScanFeatures(t, s)
+	name := "md-" + randSuffix()
+	cfg := func(body string) string {
+		return s.ProviderBlock() + fmt.Sprintf(`
+resource "entrepot_scanner" "test" {
+  name = %q
+  type = "metadefender"
+  rescan_interval_hours = 168
+  metadefender = {
+%s
+  }
+}`, name, body)
+	}
+	// The server trims the URL's trailing slash and the PEM's final newline;
+	// the configured spellings are kept, so there is no perpetual diff.
+	full := cfg(fmt.Sprintf(`
+    url                  = "https://md.example.internal:8008/"
+    api_key              = "key-one"
+    rule                 = "Packages"
+    timeout_seconds      = 900
+    concurrency          = 8
+    hash_lookup          = false
+    max_result_age_hours = 48
+    web_url              = "https://md.example.internal:8008/#/public/process/dataId/{dataId}"
+    ca_certificate       = <<-EOT
+%sEOT`, testCertPEM(t)))
+	updated := cfg(`
+    url     = "https://md.example.internal:8008/"
+    api_key = "key-one"
+    rule    = "File process"`)
+	minimal := cfg(`    url = "https://md.example.internal:8008"`)
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: protoV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: full,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "type", "metadefender"),
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.url", "https://md.example.internal:8008/"),
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.api_key", "key-one"),
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.rule", "Packages"),
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.timeout_seconds", "900"),
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.concurrency", "8"),
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.hash_lookup", "false"),
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.max_result_age_hours", "48"),
+					resource.TestCheckResourceAttrSet("entrepot_scanner.test", "metadefender.ca_certificate"),
+					resource.TestCheckNoResourceAttr("entrepot_scanner.test", "trivy"),
+					resource.TestCheckNoResourceAttr("entrepot_scanner.test", "webhook"),
+				),
+			},
+			{Config: full, PlanOnly: true},
+			// In-place update; unset settings go back to the server defaults.
+			{
+				Config: updated,
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction("entrepot_scanner.test", plancheck.ResourceActionUpdate),
+				}},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.rule", "File process"),
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.api_key", "key-one"),
+					resource.TestCheckNoResourceAttr("entrepot_scanner.test", "metadefender.concurrency"),
+					resource.TestCheckNoResourceAttr("entrepot_scanner.test", "metadefender.hash_lookup"),
+					resource.TestCheckNoResourceAttr("entrepot_scanner.test", "metadefender.ca_certificate"),
+				),
+			},
+			{Config: updated, PlanOnly: true},
+			{
+				Config: minimal,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("entrepot_scanner.test", "metadefender.url", "https://md.example.internal:8008"),
+					resource.TestCheckNoResourceAttr("entrepot_scanner.test", "metadefender.api_key"),
+					resource.TestCheckNoResourceAttr("entrepot_scanner.test", "metadefender.rule"),
+				),
+			},
+			{ResourceName: "entrepot_scanner.test", ImportState: true, ImportStateId: name,
+				ImportStateVerify: true, ImportStateVerifyIgnore: []string{"metadefender.api_key"}},
+		},
+	})
+}
+
 func TestAccScannerValidation(t *testing.T) {
 	s := testServer(t)
 	resource.Test(t, resource.TestCase{
@@ -195,6 +302,41 @@ resource "entrepot_scanner" "bad" {
   name    = "badurl"
   type    = "webhook"
   webhook = { url = "ftp://scanner.example.com" }
+}`,
+				ExpectError: regexpMust(`must be an http\(s\) URL`),
+			},
+			{
+				Config: s.ProviderBlock() + `
+resource "entrepot_scanner" "bad" {
+  name = "md-missing"
+  type = "metadefender"
+}`,
+				ExpectError: regexpMust(`requires metadefender`),
+			},
+			{
+				Config: s.ProviderBlock() + `
+resource "entrepot_scanner" "bad" {
+  name         = "md-mismatch"
+  type         = "trivy"
+  metadefender = { url = "https://md.example.com" }
+}`,
+				ExpectError: regexpMust(`(?s)Settings do not match the scanner type.*only valid for type = "metadefender"`),
+			},
+			{
+				Config: s.ProviderBlock() + `
+resource "entrepot_scanner" "bad" {
+  name         = "md-concurrency"
+  type         = "metadefender"
+  metadefender = { url = "https://md.example.com", concurrency = 99 }
+}`,
+				ExpectError: regexpMust(`(?s)concurrency.*between 1 and 32`),
+			},
+			{
+				Config: s.ProviderBlock() + `
+resource "entrepot_scanner" "bad" {
+  name         = "md-weburl"
+  type         = "metadefender"
+  metadefender = { url = "https://md.example.com", web_url = "javascript:alert(1)" }
 }`,
 				ExpectError: regexpMust(`must be an http\(s\) URL`),
 			},
