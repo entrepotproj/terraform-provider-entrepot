@@ -16,6 +16,24 @@ resource "entrepot_repository" "npmjs" {
   }
 }
 
+# Raw files checked by MetaDefender before anyone can download them. A
+# download waits up to a minute for the verdict, and stays blocked while
+# MetaDefender is unavailable. hold_seconds and block_on_error require
+# Entrepot 1.2.0 or later.
+resource "entrepot_repository" "downloads" {
+  name       = "downloads"
+  format     = "raw"
+  kind       = "hosted"
+  blob_store = "default"
+  scan = {
+    scanners            = ["metadefender"]
+    mode                = "quarantine"
+    block_until_scanned = true
+    hold_seconds        = 60
+    block_on_error      = true
+  }
+}
+
 # Internal packages, published by CI.
 resource "entrepot_repository" "npm_internal" {
   name             = "npm-internal"

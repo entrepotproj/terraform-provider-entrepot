@@ -98,6 +98,8 @@ type scanModel struct {
 	OnUpload          types.Bool   `tfsdk:"on_upload"`
 	OnProxyFetch      types.Bool   `tfsdk:"on_proxy_fetch"`
 	BlockUntilScanned types.Bool   `tfsdk:"block_until_scanned"`
+	HoldSeconds       types.Int64  `tfsdk:"hold_seconds"`
+	BlockOnError      types.Bool   `tfsdk:"block_on_error"`
 	Distro            types.String `tfsdk:"distro"`
 }
 
@@ -124,7 +126,8 @@ var (
 	scanAttrTypes  = map[string]attr.Type{
 		"scanners": types.ListType{ElemType: types.StringType}, "mode": types.StringType,
 		"severity_threshold": types.StringType, "on_upload": types.BoolType, "on_proxy_fetch": types.BoolType,
-		"block_until_scanned": types.BoolType, "distro": types.StringType,
+		"block_until_scanned": types.BoolType, "hold_seconds": types.Int64Type, "block_on_error": types.BoolType,
+		"distro": types.StringType,
 	}
 )
 
@@ -224,9 +227,19 @@ func (r *repositoryResource) Schema(_ context.Context, _ resource.SchemaRequest,
 					"severity_threshold": schema.StringAttribute{Optional: true, Computed: true,
 						Validators:          []validator.String{stringvalidator.OneOf("critical", "high", "medium", "low")},
 						MarkdownDescription: "Lowest severity that quarantines. Server default: high."},
-					"on_upload":           schema.BoolAttribute{Optional: true, Computed: true},
-					"on_proxy_fetch":      schema.BoolAttribute{Optional: true, Computed: true},
-					"block_until_scanned": schema.BoolAttribute{Optional: true, Computed: true},
+					"on_upload":      schema.BoolAttribute{Optional: true, Computed: true},
+					"on_proxy_fetch": schema.BoolAttribute{Optional: true, Computed: true},
+					"block_until_scanned": schema.BoolAttribute{Optional: true, Computed: true,
+						MarkdownDescription: "Quarantine mode: block downloads of components that have not been scanned yet. Server default: false."},
+					"hold_seconds": schema.Int64Attribute{Optional: true, Computed: true,
+						Validators: []validator.Int64{int64validator.Between(0, 600)},
+						MarkdownDescription: "Quarantine mode with `block_until_scanned`: keep a download of content that is still being " +
+							"scanned open for up to this many seconds, waiting for the verdict, instead of refusing it at once. When the " +
+							"hold runs out the client gets `503` with `Retry-After`. Server default: 0 (no hold). Requires Entrepot 1.2.0 or later."},
+					"block_on_error": schema.BoolAttribute{Optional: true, Computed: true,
+						MarkdownDescription: "Quarantine mode: fail closed, blocking downloads of components whose latest scan failed until " +
+							"a retry succeeds. Verdicts become strict: a component stays pending until every selected scanner has scanned " +
+							"its current content. Server default: false. Requires Entrepot 1.2.0 or later."},
 					"distro": schema.StringAttribute{Optional: true,
 						MarkdownDescription: "Apt/Yum: distribution for vulnerability matching, e.g. `debian-12`, `rocky-9`."},
 				},
@@ -259,6 +272,15 @@ func (r *repositoryResource) ValidateConfig(ctx context.Context, req resource.Va
 	}
 	if kind != "hosted" && !m.Hosted.IsNull() && !m.Hosted.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(path.Root("hosted"), "Unexpected hosted settings", "hosted is only valid for kind = \"hosted\"")
+	}
+	var s scanModel
+	if objectAs(ctx, m.Scan, &s, &resp.Diagnostics) && !s.HoldSeconds.IsNull() && !s.HoldSeconds.IsUnknown() && s.HoldSeconds.ValueInt64() > 0 {
+		quarantine := !s.Mode.IsNull() && !s.Mode.IsUnknown() && s.Mode.ValueString() == "quarantine"
+		blocks := !s.BlockUntilScanned.IsNull() && !s.BlockUntilScanned.IsUnknown() && s.BlockUntilScanned.ValueBool()
+		if (!s.Mode.IsUnknown() && !quarantine) || (!s.BlockUntilScanned.IsUnknown() && !blocks) {
+			resp.Diagnostics.AddAttributeWarning(path.Root("scan").AtName("hold_seconds"), "hold_seconds has no effect",
+				`hold_seconds only applies with mode = "quarantine" and block_until_scanned = true`)
+		}
 	}
 }
 
@@ -313,6 +335,7 @@ func (r *repositoryResource) input(ctx context.Context, m *repositoryModel, diag
 		ss := &client.ScanSettings{
 			OnUpload: boolPtr(s.OnUpload), OnProxyFetch: boolPtr(s.OnProxyFetch),
 			BlockUntilScanned: boolPtr(s.BlockUntilScanned), Distro: strPtr(s.Distro),
+			HoldSeconds: intPtr(s.HoldSeconds), BlockOnError: boolPtr(s.BlockOnError),
 		}
 		if l := stringList(ctx, s.Scanners, diags); l != nil {
 			ss.Scanners = &l
@@ -402,6 +425,8 @@ func (r *repositoryResource) fromAPI(ctx context.Context, rp *client.Repository,
 			OnUpload:          types.BoolValue(s.OnUpload == nil || *s.OnUpload),
 			OnProxyFetch:      types.BoolValue(s.OnProxyFetch == nil || *s.OnProxyFetch),
 			BlockUntilScanned: types.BoolValue(deref(s.BlockUntilScanned)),
+			HoldSeconds:       types.Int64Value(int64(deref(s.HoldSeconds))),
+			BlockOnError:      types.BoolValue(deref(s.BlockOnError)),
 			Distro:            strValOrEmpty(s.Distro),
 		}
 		if s.Mode != nil {

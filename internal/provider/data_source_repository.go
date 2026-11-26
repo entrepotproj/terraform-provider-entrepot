@@ -126,6 +126,8 @@ func (d *repositoryDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 					"on_upload":           boolean("Whether uploads are scanned."),
 					"on_proxy_fetch":      boolean("Whether components cached by a proxy are scanned."),
 					"block_until_scanned": boolean("Whether downloads are blocked until the first scan completes."),
+					"hold_seconds":        num("How long a download of content still being scanned waits for the verdict (0: refused at once)."),
+					"block_on_error":      boolean("Whether downloads of components whose latest scan failed are blocked (fail closed)."),
 					"distro":              str("Apt/Yum distribution used for vulnerability matching."),
 				}},
 			"cleanup_policies": strs("Names of the cleanup policies applied (null when none)."),
