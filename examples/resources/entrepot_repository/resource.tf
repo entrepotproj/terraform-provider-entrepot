@@ -34,6 +34,23 @@ resource "entrepot_repository" "downloads" {
   }
 }
 
+# A Docker Hub proxy on its own hostname: `docker pull hub.entrepot.example.com/library/alpine`,
+# and usable as Docker Engine's registry mirror ({"registry-mirrors": ["https://hub.entrepot.example.com"]}).
+# Point DNS and TLS for the name at Entrepot. docker.host requires Entrepot 1.3.1 or later.
+resource "entrepot_repository" "docker_hub" {
+  name           = "docker-hub"
+  format         = "docker"
+  kind           = "proxy"
+  blob_store     = "default"
+  anonymous_read = true # Docker Engine doesn't send Entrepot credentials to a mirror
+  proxy = {
+    remote_url = "https://registry-1.docker.io"
+  }
+  docker = {
+    host = "hub.entrepot.example.com"
+  }
+}
+
 # Internal packages, published by CI.
 resource "entrepot_repository" "npm_internal" {
   name             = "npm-internal"

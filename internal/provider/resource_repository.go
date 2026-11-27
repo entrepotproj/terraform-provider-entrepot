@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
@@ -29,6 +31,7 @@ var (
 	_ resource.Resource                   = (*repositoryResource)(nil)
 	_ resource.ResourceWithImportState    = (*repositoryResource)(nil)
 	_ resource.ResourceWithValidateConfig = (*repositoryResource)(nil)
+	_ resource.ResourceWithModifyPlan     = (*repositoryResource)(nil)
 )
 
 func NewRepositoryResource() resource.Resource { return &repositoryResource{} }
@@ -51,8 +54,15 @@ type repositoryModel struct {
 	Group           types.Object `tfsdk:"group"`
 	Scan            types.Object `tfsdk:"scan"`
 	CleanupPolicies types.List   `tfsdk:"cleanup_policies"`
+	Docker          types.Object `tfsdk:"docker"`
 	URL             types.String `tfsdk:"url"`
 }
+
+type dockerModel struct {
+	Host types.String `tfsdk:"host"`
+}
+
+var dockerAttrTypes = map[string]attr.Type{"host": types.StringType}
 
 type proxyModel struct {
 	RemoteURL               types.String `tfsdk:"remote_url"`
@@ -247,7 +257,50 @@ func (r *repositoryResource) Schema(_ context.Context, _ resource.SchemaRequest,
 			"cleanup_policies": schema.ListAttribute{ElementType: types.StringType, Optional: true,
 				Validators:          []validator.List{listvalidator.SizeAtLeast(1)},
 				MarkdownDescription: "Names of `entrepot_cleanup_policy`s applied to the repository."},
+			"docker": schema.SingleNestedAttribute{
+				Optional:            true,
+				MarkdownDescription: "Docker repositories only. Requires Entrepot 1.3.1 or later.",
+				Attributes: map[string]schema.Attribute{
+					"host": schema.StringAttribute{Required: true,
+						Validators: []validator.String{stringvalidator.RegexMatches(dockerHostRE,
+							"must be a hostname such as hub.entrepot.example.com, without scheme, port or path")},
+						MarkdownDescription: "Hostname on which the registry API is this repository, e.g. `hub.entrepot.example.com`: " +
+							"images become `host/image` instead of `entrepot-host/repository/image`, and a Docker Hub proxy can be " +
+							"Docker Engine's `registry-mirrors` entry. Point DNS and TLS for it at Entrepot. Unique across repositories, " +
+							"and not the server's own host. The path form keeps working."},
+				},
+			},
 		},
+	}
+}
+
+// dockerHostRE loosely matches a hostname (the server validates it fully).
+var dockerHostRE = regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?\.?$`)
+
+// ModifyPlan marks url unknown when docker.host changes: url is the
+// repository's hostname when it has one, and is otherwise kept from state.
+func (r *repositoryResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+		return
+	}
+	var plan, state repositoryModel
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	host := func(o types.Object) string {
+		var d dockerModel
+		if objectAs(ctx, o, &d, &resp.Diagnostics) && !d.Host.IsUnknown() {
+			return strings.ToLower(strings.TrimSuffix(d.Host.ValueString(), "."))
+		}
+		if o.IsUnknown() {
+			return "\x00unknown"
+		}
+		return ""
+	}
+	if host(plan.Docker) != host(state.Docker) {
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, path.Root("url"), types.StringUnknown())...)
 	}
 }
 
@@ -272,6 +325,10 @@ func (r *repositoryResource) ValidateConfig(ctx context.Context, req resource.Va
 	}
 	if kind != "hosted" && !m.Hosted.IsNull() && !m.Hosted.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(path.Root("hosted"), "Unexpected hosted settings", "hosted is only valid for kind = \"hosted\"")
+	}
+	if !m.Docker.IsNull() && !m.Docker.IsUnknown() && !m.Format.IsUnknown() && m.Format.ValueString() != "docker" {
+		resp.Diagnostics.AddAttributeError(path.Root("docker"), "Unexpected docker settings",
+			"docker is only valid for format = \"docker\"")
 	}
 	var s scanModel
 	if objectAs(ctx, m.Scan, &s, &resp.Diagnostics) && !s.HoldSeconds.IsNull() && !s.HoldSeconds.IsUnknown() && s.HoldSeconds.ValueInt64() > 0 {
@@ -350,6 +407,12 @@ func (r *repositoryResource) input(ctx context.Context, m *repositoryModel, diag
 	}
 	if l := stringList(ctx, m.CleanupPolicies, diags); l != nil {
 		in.Cleanup = &client.CleanupSettings{Policies: &l}
+	}
+	// Only sent when set, so servers without the setting keep accepting the
+	// request; leaving it out removes the hostname.
+	var d dockerModel
+	if objectAs(ctx, m.Docker, &d, diags) && !d.Host.IsNull() {
+		in.Docker = &client.DockerSettings{Host: strPtr(d.Host)}
 	}
 	return in
 }
@@ -441,6 +504,20 @@ func (r *repositoryResource) fromAPI(ctx context.Context, rp *client.Repository,
 	m.CleanupPolicies = types.ListNull(types.StringType)
 	if c := rp.Cleanup; c != nil && len(deref(c.Policies)) > 0 {
 		m.CleanupPolicies = listValue(deref(c.Policies), true)
+	}
+
+	var oldD dockerModel
+	hadD := objectAs(ctx, m.Docker, &oldD, diags)
+	m.Docker = types.ObjectNull(dockerAttrTypes)
+	if d := rp.Docker; d != nil && deref(d.Host) != "" {
+		host := types.StringValue(*d.Host)
+		// The server lowercases the hostname (and drops a final dot): keep
+		// the configured spelling.
+		if hadD {
+			norm := func(s string) string { return strings.ToLower(strings.TrimSuffix(strings.TrimSpace(s), ".")) }
+			host = sameSpelling(oldD.Host, host, norm)
+		}
+		m.Docker = objectFrom(ctx, dockerAttrTypes, dockerModel{Host: host}, diags)
 	}
 }
 

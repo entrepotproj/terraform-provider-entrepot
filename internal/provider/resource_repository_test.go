@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 )
 
 func TestAccRepositoryHostedProxyGroup(t *testing.T) {
@@ -152,6 +153,26 @@ resource "entrepot_repository" "bad" {
   blob_store = "default"
 }`,
 			ExpectError: regexpMust(`requires proxy`),
+		}, {
+			Config: s.ProviderBlock() + `
+resource "entrepot_repository" "bad" {
+  name       = "bad-docker-host"
+  format     = "npm"
+  kind       = "hosted"
+  blob_store = "default"
+  docker     = { host = "npm.example.com" }
+}`,
+			ExpectError: regexpMust(`docker is only valid for format = "docker"`),
+		}, {
+			Config: s.ProviderBlock() + `
+resource "entrepot_repository" "bad" {
+  name       = "bad-docker-host"
+  format     = "docker"
+  kind       = "hosted"
+  blob_store = "default"
+  docker     = { host = "https://hub.example.com" }
+}`,
+			ExpectError: regexpMust(`must be a hostname`),
 		}},
 	})
 }
@@ -218,6 +239,68 @@ data "entrepot_repository" "test" {
 			// Unset attributes keep the server's values (computed): no diff.
 			{Config: cfg(""), PlanOnly: true},
 			{ResourceName: "entrepot_repository.test", ImportState: true, ImportStateId: "hold-npm-" + sfx, ImportStateVerify: true},
+		},
+	})
+}
+
+func TestAccRepositoryDockerHost(t *testing.T) {
+	s := testServer(t)
+	requireDockerHost(t, s)
+	sfx := randSuffix()
+	cfg := func(docker string) string {
+		return s.ProviderBlock() + fmt.Sprintf(`
+resource "entrepot_repository" "test" {
+  name       = "dh-%[1]s"
+  format     = "docker"
+  kind       = "hosted"
+  blob_store = "default"
+%[2]s
+}
+
+data "entrepot_repository" "test" {
+  name       = entrepot_repository.test.name
+  depends_on = [entrepot_repository.test]
+}`, sfx, docker)
+	}
+	// The server lowercases the hostname; the configured spelling is kept.
+	first := cfg(fmt.Sprintf(`  docker = { host = "Hub-%s.Example.test" }`, sfx))
+	second := cfg(fmt.Sprintf(`  docker = { host = "registry-%s.example.test" }`, sfx))
+	none := cfg("")
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: protoV6Factories,
+		Steps: []resource.TestStep{
+			{
+				Config: first,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("entrepot_repository.test", "docker.host", "Hub-"+sfx+".Example.test"),
+					resource.TestCheckResourceAttr("entrepot_repository.test", "url", "hub-"+sfx+".example.test"),
+					resource.TestCheckResourceAttr("data.entrepot_repository.test", "docker.host", "hub-"+sfx+".example.test"),
+					resource.TestCheckResourceAttr("data.entrepot_repository.test", "url", "hub-"+sfx+".example.test"),
+				),
+			},
+			{Config: first, PlanOnly: true},
+			{
+				Config: second,
+				ConfigPlanChecks: resource.ConfigPlanChecks{PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction("entrepot_repository.test", plancheck.ResourceActionUpdate),
+					plancheck.ExpectUnknownValue("entrepot_repository.test", tfjsonpath.New("url")),
+				}},
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("entrepot_repository.test", "docker.host", "registry-"+sfx+".example.test"),
+					resource.TestCheckResourceAttr("entrepot_repository.test", "url", "registry-"+sfx+".example.test"),
+				),
+			},
+			// Without a hostname the repository is addressed by path again.
+			{
+				Config: none,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckNoResourceAttr("entrepot_repository.test", "docker"),
+					resource.TestMatchResourceAttr("entrepot_repository.test", "url", regexpMust(`/dh-`+sfx+`$`)),
+					resource.TestCheckNoResourceAttr("data.entrepot_repository.test", "docker"),
+				),
+			},
+			{Config: none, PlanOnly: true},
+			{ResourceName: "entrepot_repository.test", ImportState: true, ImportStateId: "dh-" + sfx, ImportStateVerify: true},
 		},
 	})
 }

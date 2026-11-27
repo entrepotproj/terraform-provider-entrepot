@@ -49,6 +49,23 @@ resource "entrepot_repository" "downloads" {
   }
 }
 
+# A Docker Hub proxy on its own hostname: `docker pull hub.entrepot.example.com/library/alpine`,
+# and usable as Docker Engine's registry mirror ({"registry-mirrors": ["https://hub.entrepot.example.com"]}).
+# Point DNS and TLS for the name at Entrepot. docker.host requires Entrepot 1.3.1 or later.
+resource "entrepot_repository" "docker_hub" {
+  name           = "docker-hub"
+  format         = "docker"
+  kind           = "proxy"
+  blob_store     = "default"
+  anonymous_read = true # Docker Engine doesn't send Entrepot credentials to a mirror
+  proxy = {
+    remote_url = "https://registry-1.docker.io"
+  }
+  docker = {
+    host = "hub.entrepot.example.com"
+  }
+}
+
 # Internal packages, published by CI.
 resource "entrepot_repository" "npm_internal" {
   name             = "npm-internal"
@@ -106,6 +123,7 @@ resource "entrepot_repository" "apt" {
 - `anonymous_read` (Boolean) Allow unauthenticated reads.
 - `cleanup_policies` (List of String) Names of `entrepot_cleanup_policy`s applied to the repository.
 - `description` (String)
+- `docker` (Attributes) Docker repositories only. Requires Entrepot 1.3.1 or later. (see [below for nested schema](#nestedatt--docker))
 - `group` (Attributes) Required for `kind = "group"`. (see [below for nested schema](#nestedatt--group))
 - `hosted` (Attributes) Settings for `kind = "hosted"`. (see [below for nested schema](#nestedatt--hosted))
 - `online` (Boolean) Offline proxies serve only cached content.
@@ -116,6 +134,14 @@ resource "entrepot_repository" "apt" {
 
 - `id` (String) Same as `name`.
 - `url` (String) URL to configure package clients with.
+
+<a id="nestedatt--docker"></a>
+### Nested Schema for `docker`
+
+Required:
+
+- `host` (String) Hostname on which the registry API is this repository, e.g. `hub.entrepot.example.com`: images become `host/image` instead of `entrepot-host/repository/image`, and a Docker Hub proxy can be Docker Engine's `registry-mirrors` entry. Point DNS and TLS for it at Entrepot. Unique across repositories, and not the server's own host. The path form keeps working.
+
 
 <a id="nestedatt--group"></a>
 ### Nested Schema for `group`
