@@ -934,6 +934,14 @@ type ComponentScans struct {
 	ScannedAt *time.Time   `json:"scannedAt,omitempty"`
 }
 
+// DockerSettings Docker repositories only.
+type DockerSettings struct {
+	// Host Optional hostname on which the registry API (/v2/) is this repository, so images are addressed as host/image instead of entrepot-host/repository/image, and the host can be used as a registry mirror. Point DNS and TLS for it at Entrepot. Must be unique; the path form keeps working.
+	//
+	// Example: hub.entrepot.example.com
+	Host *string `json:"host,omitempty"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	// Code Example: not_found
@@ -1120,12 +1128,15 @@ type Repository struct {
 	Cleanup       *CleanupSettings `json:"cleanup,omitempty"`
 	CreatedAt     time.Time        `json:"createdAt"`
 	Description   string           `json:"description"`
-	Format        string           `json:"format"`
-	Group         *GroupSettings   `json:"group,omitempty"`
-	Hosted        *HostedSettings  `json:"hosted,omitempty"`
-	Kind          RepositoryKind   `json:"kind"`
-	Name          string           `json:"name"`
-	Online        bool             `json:"online"`
+
+	// Docker Docker repositories only.
+	Docker *DockerSettings `json:"docker,omitempty"`
+	Format string          `json:"format"`
+	Group  *GroupSettings  `json:"group,omitempty"`
+	Hosted *HostedSettings `json:"hosted,omitempty"`
+	Kind   RepositoryKind  `json:"kind"`
+	Name   string          `json:"name"`
+	Online bool            `json:"online"`
 
 	// Permissions Actions the caller may perform
 	Permissions []string         `json:"permissions"`
@@ -1140,18 +1151,21 @@ type Repository struct {
 
 // RepositoryInput defines model for RepositoryInput.
 type RepositoryInput struct {
-	AnonymousRead *bool                 `json:"anonymousRead,omitempty"`
-	BlobStore     string                `json:"blobStore"`
-	Cleanup       *CleanupSettings      `json:"cleanup,omitempty"`
-	Description   *string               `json:"description,omitempty"`
-	Format        RepositoryInputFormat `json:"format"`
-	Group         *GroupSettings        `json:"group,omitempty"`
-	Hosted        *HostedSettings       `json:"hosted,omitempty"`
-	Kind          RepositoryKind        `json:"kind"`
-	Name          string                `json:"name"`
-	Online        *bool                 `json:"online,omitempty"`
-	Proxy         *ProxySettings        `json:"proxy,omitempty"`
-	Scan          *ScanSettings         `json:"scan,omitempty"`
+	AnonymousRead *bool            `json:"anonymousRead,omitempty"`
+	BlobStore     string           `json:"blobStore"`
+	Cleanup       *CleanupSettings `json:"cleanup,omitempty"`
+	Description   *string          `json:"description,omitempty"`
+
+	// Docker Docker repositories only.
+	Docker *DockerSettings       `json:"docker,omitempty"`
+	Format RepositoryInputFormat `json:"format"`
+	Group  *GroupSettings        `json:"group,omitempty"`
+	Hosted *HostedSettings       `json:"hosted,omitempty"`
+	Kind   RepositoryKind        `json:"kind"`
+	Name   string                `json:"name"`
+	Online *bool                 `json:"online,omitempty"`
+	Proxy  *ProxySettings        `json:"proxy,omitempty"`
+	Scan   *ScanSettings         `json:"scan,omitempty"`
 }
 
 // RepositoryInputFormat defines model for RepositoryInput.Format.
