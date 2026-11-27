@@ -36,6 +36,7 @@ output "npm_registry_url" {
 - `blob_store` (String) Blob store holding the repository's content.
 - `cleanup_policies` (List of String) Names of the cleanup policies applied (null when none).
 - `description` (String) Description.
+- `docker` (Attributes) Docker settings (null when not set). (see [below for nested schema](#nestedatt--docker))
 - `format` (String) Repository format (`raw`, `pypi`, `npm`, `docker`, `apt`, `yum`, `helm`).
 - `group` (Attributes) Group settings (null unless `kind = "group"`). (see [below for nested schema](#nestedatt--group))
 - `hosted` (Attributes) Hosted settings (null unless `kind = "hosted"`). (see [below for nested schema](#nestedatt--hosted))
@@ -46,6 +47,14 @@ output "npm_registry_url" {
 - `proxy` (Attributes) Proxy settings (null unless `kind = "proxy"`). (see [below for nested schema](#nestedatt--proxy))
 - `scan` (Attributes) Vulnerability scanning policy (null when not configured). (see [below for nested schema](#nestedatt--scan))
 - `url` (String) URL to configure package clients with.
+
+<a id="nestedatt--docker"></a>
+### Nested Schema for `docker`
+
+Read-Only:
+
+- `host` (String) Hostname on which the registry API is this repository (images without the repository prefix).
+
 
 <a id="nestedatt--group"></a>
 ### Nested Schema for `group`

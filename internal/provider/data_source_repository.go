@@ -36,6 +36,7 @@ type repositoryDataModel struct {
 	Group           types.Object `tfsdk:"group"`
 	Scan            types.Object `tfsdk:"scan"`
 	CleanupPolicies types.List   `tfsdk:"cleanup_policies"`
+	Docker          types.Object `tfsdk:"docker"`
 	URL             types.String `tfsdk:"url"`
 	Permissions     types.List   `tfsdk:"permissions"`
 }
@@ -131,7 +132,11 @@ func (d *repositoryDataSource) Schema(_ context.Context, _ datasource.SchemaRequ
 					"distro":              str("Apt/Yum distribution used for vulnerability matching."),
 				}},
 			"cleanup_policies": strs("Names of the cleanup policies applied (null when none)."),
-			"permissions":      strs("Actions the provider's credentials may perform on the repository (`read`, `write`, `delete`, `admin`)."),
+			"docker": schema.SingleNestedAttribute{Computed: true, MarkdownDescription: "Docker settings (null when not set).",
+				Attributes: map[string]schema.Attribute{
+					"host": str("Hostname on which the registry API is this repository (images without the repository prefix)."),
+				}},
+			"permissions": strs("Actions the provider's credentials may perform on the repository (`read`, `write`, `delete`, `admin`)."),
 		},
 	}
 }
@@ -159,13 +164,14 @@ func (d *repositoryDataSource) Read(ctx context.Context, req datasource.ReadRequ
 	rm := repositoryModel{
 		Proxy: types.ObjectNull(proxyAttrTypes), Hosted: types.ObjectNull(hostedAttrTypes),
 		Group: types.ObjectNull(groupAttrTypes), Scan: types.ObjectNull(scanAttrTypes),
+		Docker: types.ObjectNull(dockerAttrTypes),
 	}
 	(&repositoryResource{}).fromAPI(ctx, rp, &rm, diags)
 
 	m := repositoryDataModel{
 		ID: rm.ID, Name: rm.Name, Format: rm.Format, Kind: rm.Kind, BlobStore: rm.BlobStore, Description: rm.Description,
 		Online: rm.Online, AnonymousRead: rm.AnonymousRead, Hosted: rm.Hosted, Group: rm.Group, Scan: rm.Scan,
-		CleanupPolicies: rm.CleanupPolicies, URL: rm.URL, Permissions: listValue(rp.Permissions, false),
+		CleanupPolicies: rm.CleanupPolicies, Docker: rm.Docker, URL: rm.URL, Permissions: listValue(rp.Permissions, false),
 		Proxy: types.ObjectNull(proxyDataAttrTypes),
 	}
 	var p proxyModel

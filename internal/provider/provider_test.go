@@ -50,3 +50,27 @@ func requireScanFeatures(t *testing.T, s *acctest.Server) {
 		t.Fatalf("probe the server for MetaDefender support: HTTP %d: %s", res.StatusCode(), res.Body)
 	}
 }
+
+// requireDockerHost skips tests of Docker repository hostnames (Entrepot
+// 1.3.1) when the test server is older: it rejects the unknown setting.
+func requireDockerHost(t *testing.T, s *acctest.Server) {
+	t.Helper()
+	ctx := context.Background()
+	name := "probe-" + randSuffix()
+	host := name + ".probe.invalid"
+	res, err := s.API.CreateRepositoryWithResponse(ctx, client.RepositoryInput{Name: name, Format: client.RepositoryInputFormat("docker"),
+		Kind: client.RepositoryKind("hosted"), BlobStore: "default", Docker: &client.DockerSettings{Host: &host}})
+	if err != nil {
+		t.Fatalf("probe the server for Docker hostnames: %v", err)
+	}
+	switch res.StatusCode() {
+	case http.StatusCreated:
+		if _, err := s.API.DeleteRepositoryWithResponse(ctx, name); err != nil {
+			t.Fatalf("delete probe repository: %v", err)
+		}
+	case http.StatusBadRequest:
+		t.Skip("requires Entrepot 1.3.1 or later (Docker repository hostnames)")
+	default:
+		t.Fatalf("probe the server for Docker hostnames: HTTP %d: %s", res.StatusCode(), res.Body)
+	}
+}
