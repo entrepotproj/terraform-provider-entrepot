@@ -1502,6 +1502,18 @@ components:
         policies:
           type: array
           items: { type: string }
+    DockerSettings:
+      type: object
+      description: Docker repositories only.
+      properties:
+        host:
+          type: string
+          example: hub.entrepot.example.com
+          description: >-
+            Optional hostname on which the registry API (/v2/) is this repository, so images are
+            addressed as host/image instead of entrepot-host/repository/image, and the host can be
+            used as a registry mirror. Point DNS and TLS for it at Entrepot. Must be unique; the path
+            form keeps working.
     RepositoryInput:
       type: object
       required: [name, format, kind, blobStore]
@@ -1518,6 +1530,7 @@ components:
         group: { $ref: "#/components/schemas/GroupSettings" }
         scan: { $ref: "#/components/schemas/ScanSettings" }
         cleanup: { $ref: "#/components/schemas/CleanupSettings" }
+        docker: { $ref: "#/components/schemas/DockerSettings" }
     Repository:
       type: object
       required: [name, format, kind, blobStore, description, online, anonymousRead, url, permissions, createdAt, updatedAt]
@@ -1535,6 +1548,7 @@ components:
         group: { $ref: "#/components/schemas/GroupSettings" }
         scan: { $ref: "#/components/schemas/ScanSettings" }
         cleanup: { $ref: "#/components/schemas/CleanupSettings" }
+        docker: { $ref: "#/components/schemas/DockerSettings" }
         permissions:
           type: array
           description: Actions the caller may perform
